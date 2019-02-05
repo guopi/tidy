@@ -1,5 +1,5 @@
 {
-  "name": "tidy", // package的名称
+  "name": "tidy",
   "author": "Li Guofeng <guopiguopi@gmail.com>",
   "version": "0.0.1",
   "main": "index"
