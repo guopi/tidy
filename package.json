@@ -1,6 +1,12 @@
 {
-  "name": "tidy",
-  "author": "Li Guofeng <guopiguopi@gmail.com>",
-  "version": "0.0.1",
-  "main": "index"
+    "name": "tidyjs",
+    "author": "Li Guofeng <guopiguopi@gmail.com>",
+    "license": "MIT",
+    "description": "tidy typescript framework web framework for node",
+    "version": "0.0.2",
+    "main": "index.js",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/guopi/tidy"
+    }
 }
