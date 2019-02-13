@@ -1,0 +1,26 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "CommonJS",
+        "allowJs": false,
+        "jsx": "react",
+        "sourceMap": true,
+        "outDir": "./out",
+        "declaration": true,
+        "declarationDir": "./out/types",
+        "skipLibCheck": true,
+        "strict": true,
+        "allowSyntheticDefaultImports": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true
+    },
+    "include": [
+        "src/**/*.ts",
+        "examples/**/*.ts"
+    ],
+    "exclude": [
+        "build",
+        "out",
+        "node_modules"
+    ]
+}

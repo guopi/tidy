@@ -8,5 +8,13 @@
     "repository": {
         "type": "git",
         "url": "https://github.com/guopi/tidy"
+    },
+    "devDependencies": {
+        "ts-node": "^8.0.2",
+        "typescript": "^3.3.1"
+    },
+    "dependencies": {
+        "@types/express": "^4.16.1",
+        "express": "^4.16.4"
     }
 }

@@ -1,6 +1,8 @@
 node_modules/
-yarn.lock
-
+.idea/
 out/
 build/
-.idea
+dist/
+
+yarn.lock
+yarn-error.log
