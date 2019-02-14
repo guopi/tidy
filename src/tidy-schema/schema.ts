@@ -55,8 +55,6 @@ class TBoolType extends BaseType<boolean> {
 }
 
 class TIntType extends BaseType<number> {
-    _min?: number
-
     mustBe(values: number[], message?: RuleMessage<number>): this {
         return this.should(
             v => v in values,
@@ -64,8 +62,11 @@ class TIntType extends BaseType<number> {
         )
     }
 
-    min(x: number): this {
-        this._min = x
+    min(min: number, message?: RuleMessage<number>): this {
+        return this.should(
+            v => v >= min,
+            message || `must >= ${min}`
+        )
         return this
     }
 }
