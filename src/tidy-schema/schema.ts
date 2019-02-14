@@ -67,7 +67,6 @@ class TIntType extends BaseType<number> {
             v => v >= min,
             message || `must >= ${min}`
         )
-        return this
     }
 }
 
