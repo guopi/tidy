@@ -21,7 +21,7 @@ interface ApiType {
     resp?: TidyResponse
 }
 
-interface ParamPathSection<RiType> {
+interface ParamPathSection<R extends ApiType> {
     readonly param: keyof R['params'],
     readonly opt?: boolean
 }
@@ -45,7 +45,7 @@ interface ApiSchema<T extends ApiType> {
     headers?: SchemaDef<T['headers']>
     params?: SchemaDef<T['params']>
     queryArgs?: SchemaDef<T['queryArgs']>
-    constrains?: ((t: T) => void)[]
+    constrains?: ((t: T) => void)[] //todo
     body?: SchemaDef<T['body']>
 }
 
