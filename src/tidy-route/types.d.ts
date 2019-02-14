@@ -14,7 +14,7 @@ interface ApiType {
     params?: {
         [k: string]: ValidJsonType
     }
-    queryArgs?: {
+    query?: {
         [k: string]: ValidJsonType
     }
     body?: string | {} | ValidJsonType[]
@@ -33,26 +33,18 @@ type ValidateError = ValidateSingleError | ValidateSingleError[]
 
 type ResponseError = any //todo
 
-interface ValidateResults {
-    error?: {
-        [k: string]: string[]
-    }
-
-    //todo
-}
 
 interface ApiSchema<T extends ApiType> {
     headers?: SchemaDef<T['headers']>
     params?: SchemaDef<T['params']>
-    queryArgs?: SchemaDef<T['queryArgs']>
-    constrains?: ((t: T) => void)[] //todo
+    query?: SchemaDef<T['query']>
     body?: SchemaDef<T['body']>
 }
 
 interface HttpResponse<BODY extends string | object> {
     error?: {
         params?: ValidateError
-        queryArgs?: ValidateError
+        query?: ValidateError
         body?: ValidateError
     }
     body?: BODY
