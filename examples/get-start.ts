@@ -74,12 +74,7 @@ server.onPost<API_CardAdd>(
         })
     }
 )
-server.onGet<API_Test>(['/test/', routeParam('r1')], async req => {
-    return {
-        req: req
-    }
-})
-server.onPost<API_Test>(['/test/', routeParam('r1')], async req => {
+server.onAll<API_Test>(['/test/', routeParam('r1')], async req => {
     return {
         req: req
     }

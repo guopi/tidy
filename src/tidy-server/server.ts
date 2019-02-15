@@ -42,7 +42,13 @@ type ApiReturn<R extends ApiType> = TidyResponseBodyOf<R> | JsonResponse<R['resp
 export type ApiImplement<R extends ApiType> = (req: ApiInput<R>) => Promise<ApiReturn<R>>
 
 export class ServerApp {
-    private readonly express: Express = ex()
+    private readonly express: Express
+
+    constructor() {
+        this.express = ex()
+            .use(ex.json())
+            .use(ex.urlencoded({ extended: true }))
+    }
 
     on<R extends ApiType>(
         method: HttpMethod,
@@ -78,6 +84,10 @@ export class ServerApp {
 
     onGet<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
         return this.on('get', path, fn, schema)
+    }
+
+    onAll<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
+        return this.on('all', path, fn, schema)
     }
 
     onPost<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {

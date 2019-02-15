@@ -23,8 +23,8 @@ interface ApiType {
 
 type ApiInput<T extends ApiType> = Pick<T, Exclude<keyof T,'resp'>>
 
-interface ParamPathSection<R extends ApiType> {
-    readonly param: keyof R['params'],
+interface ParamPathSection<T extends string> {
+    readonly param: T,
     readonly pattern?: string
 }
 
@@ -54,8 +54,8 @@ interface HttpResponse<BODY extends string | object> {
     }
 }
 
-type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options'
-type RoutePath<R extends ApiType> = (string | ParamPathSection<R>)[] | string
+type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options' | 'all'
+type RoutePath<R extends ApiType> = (string | ParamPathSection<keyof R['params']>)[] | string
 
 interface ApiDefine<R extends ApiType> {
     method: HttpMethod

@@ -4,7 +4,7 @@ export function defApi<R extends ApiType>(method: HttpMethod, path: RoutePath<R>
     }
 }
 
-export function routeParam<R extends ApiType>(name: keyof R['params'], pattern?: string): ParamPathSection<R> {
+export function routeParam<T extends string>(name: T, pattern?: string): ParamPathSection<T> {
     return {
         param: name,
         pattern
