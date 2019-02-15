@@ -21,9 +21,11 @@ interface ApiType {
     resp?: TidyResponse
 }
 
+type ApiInput<T extends ApiType> = Pick<T, Exclude<keyof T,'resp'>>
+
 interface ParamPathSection<R extends ApiType> {
     readonly param: keyof R['params'],
-    readonly opt?: boolean
+    readonly pattern?: string
 }
 
 type ValidateSingleError = string | {
@@ -32,7 +34,6 @@ type ValidateSingleError = string | {
 type ValidateError = ValidateSingleError | ValidateSingleError[]
 
 type ResponseError = any //todo
-
 
 interface ApiSchema<T extends ApiType> {
     headers?: SchemaDef<T['headers']>

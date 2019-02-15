@@ -7,6 +7,12 @@ interface Card {
     text: string
 }
 
+interface API_Test {
+    params: {
+        r1?: string
+    }
+}
+
 interface API_CardList {
     params: {
         catId: number
@@ -68,7 +74,15 @@ server.onPost<API_CardAdd>(
         })
     }
 )
+server.onGet<API_Test>(['/test/', routeParam('r1')], async req => {
+    return {
+        req: req
+    }
+})
+server.onPost<API_Test>(['/test/', routeParam('r1')], async req => {
+    return {
+        req: req
+    }
+})
 
 server.listen(3000)
-
-
