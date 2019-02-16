@@ -1,5 +1,7 @@
 import * as ex from 'express'
 import * as http from 'http'
+import * as cookieParser from 'cookie-parser'
+import * as fileUpload from 'express-fileupload'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
 
 abstract class BaseTidyResponse {
@@ -44,10 +46,36 @@ export type ApiImplement<R extends ApiType> = (req: ApiInput<R>) => Promise<ApiR
 export class ServerApp {
     private readonly express: Express
 
-    constructor() {
-        this.express = ex()
-            .use(ex.json())
-            .use(ex.urlencoded({ extended: true }))
+    constructor(options?: ServerAppOptions) {
+        const express = ex()
+        express.use(ex.json(options && options.bodyLimit
+            ? {
+                limit: options.bodyLimit
+            }
+            : undefined
+        )).use(ex.urlencoded({
+            extended: true,
+            limit: options && options.bodyLimit
+        }))
+        if (options) {
+            if (options.useCookie) {
+                express.use(cookieParser())
+            }
+            if (options.upload) {
+                const opt: fileUpload.Options = {
+                    useTempFiles: true,
+                    tempFileDir: options.upload.tempDir
+                }
+                if (options.upload.fileSizeLimit) {
+                    opt.limits = {
+                        fileSize: options.upload.fileSizeLimit
+                    }
+                }
+                express.use(fileUpload(opt))
+            }
+        }
+
+        this.express = express
     }
 
     on<R extends ApiType>(
@@ -62,9 +90,11 @@ export class ServerApp {
                 headers: req.headers,
                 params: req.params,
                 query: req.query,
-                body: req.body
+                body: req.body,
+                files: req.files,
+                cookies: req.cookies
             } as any
-            fn(input).then(r => {
+            const promise = fn(input).then(r => {
                 if (r instanceof BaseTidyResponse)
                     r.send(resp)
                 else if (typeof r === 'object')
@@ -74,6 +104,13 @@ export class ServerApp {
                     this._onError('wrong result type', resp)
                 }
             }).catch(e => this._onError(e, resp))
+
+            if (req.files) {
+                let clean = () => {
+                    //todo delete uploaded files
+                }
+                promise.then(clean, clean)
+            }
         })
         return this
     }

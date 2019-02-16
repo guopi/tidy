@@ -2,7 +2,7 @@
 tidy typescript framework web framework for node
 
 #examples
-1. run getstart sample
+1. run get-start sample
 
     ts-node --files examples/get-start.ts
     

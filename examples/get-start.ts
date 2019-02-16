@@ -52,7 +52,12 @@ const Routes = {
     )
 }
 
-const server = new ServerApp()
+const server = new ServerApp({
+    useCookie: true,
+    upload: {
+        tempDir: '/tmp/t1'
+    }
+})
 server.route(Routes.cardList, async req => {
     return [{
         cardId: 999,
