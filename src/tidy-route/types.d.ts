@@ -115,11 +115,17 @@ interface HttpResponse<BODY extends string | object> {
 }
 
 type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options' | 'all'
-type RoutePath<R extends ApiType> = (string | ParamPathSection<keyof R['params']>)[] | string
+
+interface ICompRoutePath<K extends string> {
+    readonly parts: ReadonlyArray<string | ParamPathSection<K>>
+}
+
+type RoutePath<R extends ApiType> = string | ICompRoutePath<keyof R['params']>
+type RoutePaths<R extends ApiType> = RoutePath<R> | RoutePath<R>[]
 
 interface ApiDefine<R extends ApiType> {
     method: HttpMethod
-    path: RoutePath<R>
+    path: RoutePaths<R>
     schema?: ApiSchema<R>
 }
 

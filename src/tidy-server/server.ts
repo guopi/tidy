@@ -78,13 +78,9 @@ export class ServerApp {
         this.express = express
     }
 
-    on<R extends ApiType>(
-        method: HttpMethod,
-        path: RoutePath<R>,
-        fn: ApiImplement<R>,
-        schema?: ApiSchema<R>): this {
+    on<R extends ApiType>(method: HttpMethod, path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
         const expressMethod: (path: PathParams, handlers: RequestHandler) => void = this.express[method]
-        expressMethod.call(this.express, toExpressRoute(path), (req: ex.Request, resp: ex.Response) => {
+        const expressHandler = (req: ex.Request, resp: ex.Response) => {
             //todo validate
             const input: ApiInput<R> = {
                 headers: req.headers,
@@ -111,7 +107,14 @@ export class ServerApp {
                 }
                 promise.then(clean, clean)
             }
-        })
+        }
+        if (Array.isArray(path)) {
+            for (const p of path) {
+                expressMethod.call(this.express, toExpressRoute(p), expressHandler)
+            }
+        } else {
+            expressMethod.call(this.express, toExpressRoute(path), expressHandler)
+        }
         return this
     }
 
@@ -119,15 +122,15 @@ export class ServerApp {
         //todo
     }
 
-    onGet<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
+    onGet<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
         return this.on('get', path, fn, schema)
     }
 
-    onAll<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
+    onAll<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
         return this.on('all', path, fn, schema)
     }
 
-    onPost<R extends ApiType>(path: RoutePath<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
+    onPost<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
         return this.on('post', path, fn, schema)
     }
 
@@ -151,7 +154,7 @@ function toExpressRoute(path: RoutePath<any>): string {
     }
 
     let ret = ''
-    for (const part of path) {
+    for (const part of path.parts) {
         ret += (typeof part === 'string'
                 ? part
                 : (part.pattern ? `:${part.param as any}(${part.pattern})` : `:${part.param as any}`)
