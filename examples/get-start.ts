@@ -1,6 +1,5 @@
 import { defApi, pathOf } from '../src/tidy-route'
 import { ServerApp } from '../src/tidy-server/server'
-import { jsc } from '../src/tidy-schema/schema'
 
 interface Card {
     cardId: number
@@ -42,13 +41,7 @@ interface API_CardAdd {
 const Routes = {
     cardList: defApi<API_CardList>(
         'get',
-        pathOf`/card/${'catId'}`,
-        {
-            body: jsc.obj({
-                country: jsc.str().opt(),
-                limit: jsc.int().min(10).opt()
-            })
-        }
+        pathOf`/card/${'catId'}`
     )
 }
 
@@ -71,13 +64,6 @@ server.onPost<API_CardAdd>(
         return {
             cardId: 999
         }
-    },
-    {
-        body: jsc.obj({
-            add: jsc.obj({
-                text: jsc.str()
-            })
-        })
     }
 )
 

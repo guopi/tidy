@@ -1,6 +1,6 @@
-export function defApi<R extends ApiType>(method: HttpMethod, path: RoutePath<R>, schema?: ApiSchema<R>): ApiDefine<R> {
+export function defApi<R extends ApiType>(method: HttpMethod, path: RoutePaths<R>): ApiDefine<R> {
     return {
-        method, path, schema
+        method, path
     }
 }
 

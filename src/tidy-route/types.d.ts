@@ -1,3 +1,5 @@
+type ValidJsonType = boolean | number | string | null | undefined | any[] | {}
+
 interface TidyResponse {
     body?: string | object
     headers?: {
@@ -86,28 +88,9 @@ interface ParamPathSection<T extends string> {
     readonly pattern?: string
 }
 
-type ValidateSingleError = string | {
-    [k: string | number]: ValidateError
-}
-type ValidateError = ValidateSingleError | ValidateSingleError[]
-
-type ResponseError = any //todo
-
-interface ApiSchema<T extends ApiType> {
-    headers?: SchemaDef<T['headers']>
-    cookies?: SchemaDef<T['cookies']>
-    params?: SchemaDef<T['params']>
-    query?: SchemaDef<T['query']>
-    body?: SchemaDef<T['body']>
-    files?: SchemaDef<T['files']>
-}
+type ResponseError = string | {}
 
 interface HttpResponse<BODY extends string | object> {
-    error?: {
-        params?: ValidateError
-        query?: ValidateError
-        body?: ValidateError
-    }
     body?: BODY
     headers?: {
         [k: string]: string
@@ -126,6 +109,5 @@ type RoutePaths<R extends ApiType> = RoutePath<R> | RoutePath<R>[]
 interface ApiDefine<R extends ApiType> {
     method: HttpMethod
     path: RoutePaths<R>
-    schema?: ApiSchema<R>
 }
 

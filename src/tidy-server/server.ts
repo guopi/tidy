@@ -4,21 +4,23 @@ import * as cookieParser from 'cookie-parser'
 import * as fileUpload from 'express-fileupload'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
 
-abstract class BaseTidyResponse {
+abstract class TidyHttpResponse {
     abstract send(resp: ex.Response): void
 }
 
-export class TidyError extends BaseTidyResponse {
+export class TidyError extends TidyHttpResponse {
     constructor(readonly error: ResponseError) {
         super()
     }
 
     send(resp: ex.Response): void {
-        //todo
+        resp.json({
+            error: this.error
+        })
     }
 }
 
-export class TextResponse extends BaseTidyResponse {
+export class TextResponse extends TidyHttpResponse {
     constructor(readonly text: string) {
         super()
     }
@@ -28,7 +30,7 @@ export class TextResponse extends BaseTidyResponse {
     }
 }
 
-export class JsonResponse<Resp extends TidyResponse | undefined> extends BaseTidyResponse {
+export class JsonResponse<Resp extends TidyResponse | undefined> extends TidyHttpResponse {
     constructor(readonly json: Resp) {
         super()
     }
@@ -78,10 +80,9 @@ export class ServerApp {
         this.express = express
     }
 
-    on<R extends ApiType>(method: HttpMethod, path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
+    on<R extends ApiType>(method: HttpMethod, path: RoutePaths<R>, fn: ApiImplement<R>): this {
         const expressMethod: (path: PathParams, handlers: RequestHandler) => void = this.express[method]
         const expressHandler = (req: ex.Request, resp: ex.Response) => {
-            //todo validate
             const input: ApiInput<R> = {
                 headers: req.headers,
                 params: req.params,
@@ -91,7 +92,7 @@ export class ServerApp {
                 cookies: req.cookies
             } as any
             const promise = fn(input).then(r => {
-                if (r instanceof BaseTidyResponse)
+                if (r instanceof TidyHttpResponse)
                     r.send(resp)
                 else if (typeof r === 'object')
                     resp.json(r)
@@ -122,20 +123,20 @@ export class ServerApp {
         //todo
     }
 
-    onGet<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
-        return this.on('get', path, fn, schema)
+    onGet<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>): this {
+        return this.on('get', path, fn)
     }
 
-    onAll<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
-        return this.on('all', path, fn, schema)
+    onAll<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>): this {
+        return this.on('all', path, fn)
     }
 
-    onPost<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>, schema?: ApiSchema<R>): this {
-        return this.on('post', path, fn, schema)
+    onPost<R extends ApiType>(path: RoutePaths<R>, fn: ApiImplement<R>): this {
+        return this.on('post', path, fn)
     }
 
     route<R extends ApiType>(define: ApiDefine<R>, fn: ApiImplement<R>) {
-        return this.on(define.method, define.path, fn, define.schema)
+        return this.on(define.method, define.path, fn)
     }
 
     listen(port: number, host?: string, backlog?: number): void {
