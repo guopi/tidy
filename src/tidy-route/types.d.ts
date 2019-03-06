@@ -90,13 +90,6 @@ interface ParamPathSection<T extends string> {
 
 type ResponseError = string | {}
 
-interface HttpResponse<BODY extends string | object> {
-    body?: BODY
-    headers?: {
-        [k: string]: string
-    }
-}
-
 type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options' | 'all'
 
 interface ICompRoutePath<K extends string> {

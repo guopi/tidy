@@ -4,11 +4,11 @@ import * as cookieParser from 'cookie-parser'
 import * as fileUpload from 'express-fileupload'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
 
-abstract class TidyHttpResponse {
+abstract class AbstractResponse {
     abstract send(resp: ex.Response): void
 }
 
-export class TidyError extends TidyHttpResponse {
+export class ErrorResponse extends AbstractResponse {
     constructor(readonly error: ResponseError) {
         super()
     }
@@ -20,7 +20,7 @@ export class TidyError extends TidyHttpResponse {
     }
 }
 
-export class TextResponse extends TidyHttpResponse {
+export class TextResponse extends AbstractResponse {
     constructor(readonly text: string) {
         super()
     }
@@ -30,7 +30,7 @@ export class TextResponse extends TidyHttpResponse {
     }
 }
 
-export class JsonResponse<Resp extends TidyResponse | undefined> extends TidyHttpResponse {
+export class JsonResponse<Resp extends TidyResponse | undefined> extends AbstractResponse {
     constructor(readonly json: Resp) {
         super()
     }
@@ -41,7 +41,7 @@ export class JsonResponse<Resp extends TidyResponse | undefined> extends TidyHtt
     }
 }
 
-type ApiReturn<R extends ApiType> = TidyResponseBodyOf<R> | JsonResponse<R['resp']> | TidyError | TextResponse
+type ApiReturn<R extends ApiType> = TidyResponseBodyOf<R> | JsonResponse<R['resp']> | ErrorResponse | TextResponse
 
 export type ApiImplement<R extends ApiType> = (req: ApiInput<R>) => Promise<ApiReturn<R>>
 
@@ -92,7 +92,7 @@ export class ServerApp {
                 cookies: req.cookies
             } as any
             const promise = fn(input).then(r => {
-                if (r instanceof TidyHttpResponse)
+                if (r instanceof AbstractResponse)
                     r.send(resp)
                 else if (typeof r === 'object')
                     resp.json(r)
