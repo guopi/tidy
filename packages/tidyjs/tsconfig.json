@@ -1,13 +1,14 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "module": "CommonJS",
+        "module": "ES2015",
+        "moduleResolution": "node",
         "allowJs": false,
         "jsx": "react",
         "sourceMap": true,
         "outDir": "./out",
-        "declaration": true,
-        "declarationDir": "./out/types",
+        //"declaration": true,
+        //"declarationDir": "./out/types",
         "skipLibCheck": true,
         "strict": true,
         "allowSyntheticDefaultImports": true,
@@ -16,6 +17,7 @@
     },
     "include": [
         "src/**/*.ts",
+        "src/**/*.d.ts",
         "examples/**/*.ts"
     ],
     "exclude": [

@@ -10,6 +10,12 @@ interface API_Test {
     params: {
         r1?: string
     }
+    resp: {
+        body: {
+            r1?: string
+            r2: number
+        }
+    }
 }
 
 interface API_CardList {
@@ -69,7 +75,8 @@ server.onPost<API_CardAdd>(
 
 server.onAll<API_Test>([pathOf`/test/${'r1'}`, pathOf`/test2/${'r1'}`], async req => {
     return {
-        req: req
+        r1: '',
+        r2: 1
     }
 })
 

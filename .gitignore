@@ -3,6 +3,8 @@ node_modules/
 out/
 build/
 dist/
+lib/
+.rpt2_cache/
 
 yarn.lock
 yarn-error.log
