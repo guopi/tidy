@@ -2,9 +2,12 @@
 // import commonjs from "rollup-plugin-commonjs";
 // import nodeResolve from "rollup-plugin-node-resolve";
 
+import pkg from './package.json'
 import typescript from 'rollup-plugin-typescript2';
 import {dts} from "rollup-plugin-dts";
-import pkg from './package.json'
+import {readFileSync} from "fs"
+
+const typeDefines = readFileSync('./types/dts-bundle-header.ts', 'utf8')
 
 export default [
     {
@@ -29,6 +32,16 @@ export default [
             file: pkg.types,
             format: "es"
         }],
-        plugins: [dts()]
+        plugins: [
+            {
+                name: 'add dts header',
+                renderChunk(code) {
+                    return typeDefines + code
+                }
+            },
+            dts({
+                banner: false
+            })
+        ]
     }
 ]

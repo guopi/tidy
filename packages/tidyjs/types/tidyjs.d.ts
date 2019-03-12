@@ -1,20 +1,20 @@
 namespace tidy {
-    type ValidJsonType = boolean | number | string | null | undefined | any[] | {}
+    type SimpleData = boolean | number | string | null | undefined | any[] | {}
 
     interface StringKeyDict {
-        [k: string]: ValidJsonType
+        [k: string]: SimpleData
     }
 
     interface String2StringDict {
         [k: string]: string
     }
 
-    interface TidyResponse {
+    interface Response {
         body?: string | object
         headers?: String2StringDict
     }
 
-    interface StdHttpHeaders {
+    interface HttpHeaders {
         'accept'?: string;
         'accept-patch'?: string;
         'accept-ranges'?: string;
@@ -71,37 +71,37 @@ namespace tidy {
     }
 
     interface ApiType {
-        headers?: StdHttpHeaders,
+        headers?: HttpHeaders,
         cookies?: String2StringDict
         params?: StringKeyDict
         query?: StringKeyDict
-        body?: string | {} | ValidJsonType[]
+        body?: string | {} | SimpleData[]
         files?: {
-            [k: string]: ValidJsonType
+            [k: string]: SimpleData
         }
-        resp?: TidyResponse
+        resp?: Response
     }
 
-    type TidyResponseBodyOf<R extends ApiType> = R['resp'] extends { body: any } ? R['resp']['body'] : undefined
+    type ResponseBodyOf<R extends ApiType> = R['resp'] extends { body: any } ? R['resp']['body'] : undefined
 
     type ApiInput<T extends ApiType> = Pick<T, Exclude<keyof T, 'resp'>>
+
+    type ResponseError = string | {}    //todo
+
+    type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options' | 'all'
 
     interface ParamPathSection<T extends string> {
         readonly param: T,
         readonly pattern?: string
     }
 
-    type ResponseError = string | {}
-
-    type HttpMethod = 'get' | 'post' | 'put' | 'delete' | 'head' | 'options' | 'all'
-
-    interface ICompRoutePath<K extends string> {
+    interface CompRoutePath<K extends string> {
         readonly parts: ReadonlyArray<string | ParamPathSection<K>>
     }
 
     type ChooseStrings<KEY> = KEY extends string ? KEY : never
 
-    type RoutePath<R extends ApiType> = string | ICompRoutePath<ChooseStrings<keyof R['params']>>
+    type RoutePath<R extends ApiType> = string | CompRoutePath<ChooseStrings<keyof R['params']>>
     type RoutePaths<R extends ApiType> = RoutePath<R> | RoutePath<R>[]
 
     interface ApiDefine<R extends ApiType> {
@@ -116,5 +116,9 @@ namespace tidy {
             fileSizeLimit?: number
             tempDir: string
         }
+    }
+
+    interface _Server {
+
     }
 }

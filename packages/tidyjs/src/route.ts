@@ -1,16 +1,14 @@
-/// <reference path="../types/tidyjs.d.ts" />
-
 export function defApi<R extends tidy.ApiType>(method: tidy.HttpMethod, path: tidy.RoutePaths<R>): tidy.ApiDefine<R> {
     return {
         method, path
     }
 }
 
-export function pathOf<K extends string>(staticParts: TemplateStringsArray, ...parsableParts: (K | tidy.ParamPathSection<K>)[]): CompRoutePath<K> {
-    return new CompRoutePath<K>(staticParts, parsableParts)
+export function pathOf<K extends string>(staticParts: TemplateStringsArray, ...parsableParts: (K | tidy.ParamPathSection<K>)[]): SimpleCompRoutePath<K> {
+    return new SimpleCompRoutePath<K>(staticParts, parsableParts)
 }
 
-export class CompRoutePath<K extends string> implements tidy.ICompRoutePath<K> {
+class SimpleCompRoutePath<K extends string> implements tidy.CompRoutePath<K> {
     readonly parts: ReadonlyArray<string | tidy.ParamPathSection<K>>
 
     constructor(staticParts: TemplateStringsArray, parsableParts: (K | tidy.ParamPathSection<K>)[]) {

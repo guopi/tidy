@@ -3,26 +3,25 @@
         "target": "ES6",
         "module": "ES2015",
         "moduleResolution": "node",
-        "allowJs": false,
-        "jsx": "react",
-        "sourceMap": true,
+        "allowSyntheticDefaultImports": true,
         "outDir": "./out",
         "declaration": false,
-        //        "declarationDir": "./out/dts",
-        "skipLibCheck": true,
+        // "declarationDir": "./out/dts",
         "strict": true,
+        "allowJs": false,
+        "skipLibCheck": true,
         "noImplicitAny": true,
-        "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true
+        "emitDecoratorMetadata": true,
+        "typeRoots": [
+            "./types"
+        ]
     },
     "include": [
         "src/**/*.ts",
-        "types/*.d.ts",
-        "examples/**/*.ts"
+        "types/*.d.ts"
     ],
     "exclude": [
-        "build",
         "out",
         "node_modules"
     ]

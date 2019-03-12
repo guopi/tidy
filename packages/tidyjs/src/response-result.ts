@@ -1,5 +1,3 @@
-/// <reference path="../types/tidyjs.d.ts" />
-
 import * as ex from 'express'
 
 type ExResponse = any
@@ -30,7 +28,7 @@ export class TextResponse extends AbstractResponse {
     }
 }
 
-export class JsonResponse<Resp extends tidy.TidyResponse | undefined> extends AbstractResponse {
+export class JsonResponse<Resp extends tidy.Response | undefined> extends AbstractResponse {
     constructor(readonly json: Resp) {
         super()
     }
@@ -42,7 +40,7 @@ export class JsonResponse<Resp extends tidy.TidyResponse | undefined> extends Ab
 }
 
 export type ApiReturn<R extends tidy.ApiType> =
-    tidy.TidyResponseBodyOf<R>
+    tidy.ResponseBodyOf<R>
     | JsonResponse<R['resp']>
     | ErrorResponse
     | TextResponse

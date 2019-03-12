@@ -1,5 +1,3 @@
-/// <reference path="../types/tidyjs.d.ts" />
-
 import ex from 'express'
 import { createServer } from 'http'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
