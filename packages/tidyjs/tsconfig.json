@@ -7,17 +7,18 @@
         "jsx": "react",
         "sourceMap": true,
         "outDir": "./out",
-        //"declaration": true,
-        //"declarationDir": "./out/types",
+        "declaration": false,
+        //        "declarationDir": "./out/dts",
         "skipLibCheck": true,
         "strict": true,
+        "noImplicitAny": true,
         "allowSyntheticDefaultImports": true,
         "experimentalDecorators": true,
         "emitDecoratorMetadata": true
     },
     "include": [
         "src/**/*.ts",
-        "src/**/*.d.ts",
+        "types/*.d.ts",
         "examples/**/*.ts"
     ],
     "exclude": [

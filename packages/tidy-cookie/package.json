@@ -4,7 +4,8 @@
     "license": "MIT",
     "description": "tidy cookie preprocessor",
     "main": "lib/index.cjs.js",
-    "module": "lib/index.es.js",
+    "module": "lib/index.esm.js",
+    "types": "lib/index.d.ts",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/guopi/tidy.git"
@@ -19,7 +20,8 @@
         "test": "__tests__"
     },
     "files": [
-        "lib"
+        "lib",
+        "types"
     ],
     "scripts": {
         "test": "echo \"Error: run tests from root\" && exit 1"
@@ -30,6 +32,7 @@
     "devDependencies": {
         "rollup": "^1.6.0",
         "rollup-plugin-dts": "^0.13.0",
+        "rollup-plugin-node-resolve": "^4.0.1",
         "rollup-plugin-typescript2": "^0.19.3",
         "typescript": "^3.3.3333"
     }
