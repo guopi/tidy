@@ -7,7 +7,7 @@ import typescript from 'rollup-plugin-typescript2';
 import {dts} from "rollup-plugin-dts";
 import {readFileSync} from "fs"
 
-const typeDefines = readFileSync('./types/dts-bundle-header.ts', 'utf8')
+const typeDefines = readFileSync('./build-tools/dts-bundle-header.ts', 'utf8')
 
 export default [
     {
