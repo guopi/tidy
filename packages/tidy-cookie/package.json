@@ -14,7 +14,7 @@
         "url": "https://github.com/guopi/tidy/issues"
     },
     "homepage": "https://github.com/guopi/tidy#readme",
-    "version": "0.0.4",
+    "version": "0.0.5",
     "directories": {
         "lib": "lib",
         "test": "__tests__"
@@ -27,7 +27,7 @@
         "test": "echo \"Error: run tests from root\" && exit 1"
     },
     "dependencies": {
-        "tidyjs": "^0.0.4"
+        "tidyjs": "^0.0.5"
     },
     "devDependencies": {
         "rollup": "^1.6.0",
