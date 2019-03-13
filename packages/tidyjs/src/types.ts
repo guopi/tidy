@@ -8,7 +8,8 @@ interface StringKeyDict {
     [k: string]: TidySimpleData
 }
 
-export type TidySimpleData = boolean | number | string | null | undefined | any[] | {}
+export type TidyNonNilSimpleData = boolean | number | string | any[] | {}
+export type TidySimpleData = TidyNonNilSimpleData | null | undefined
 
 export interface TidyApiOutType {
     body?: string | object

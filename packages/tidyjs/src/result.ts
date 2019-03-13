@@ -1,5 +1,12 @@
 import ex from 'express'
-import { _TidyUnderlingResponse, TidyApiIn, TidyApiOutType, TidyApiType, TidyOutBodyOf, TidySimpleData } from './types'
+import {
+    _TidyUnderlingResponse,
+    TidyApiIn,
+    TidyApiOutType,
+    TidyApiType,
+    TidyNonNilSimpleData,
+    TidyOutBodyOf
+} from './types'
 
 type ResponseAction = (resp: _TidyUnderlingResponse) => void
 
@@ -64,7 +71,7 @@ export abstract class BaseResult extends AbstractResult {
 }
 
 export class ErrorResult extends BaseResult {
-    constructor(readonly error: TidySimpleData) {
+    constructor(readonly error: TidyNonNilSimpleData) {
         super()
     }
 
