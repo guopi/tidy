@@ -6,4 +6,5 @@ declare global {
     }
 }
 
-type _TidyApiType = Tidy.ApiType
+interface _TidyApiType extends Tidy.ApiType {
+}

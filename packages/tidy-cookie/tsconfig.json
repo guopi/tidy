@@ -18,11 +18,11 @@
         ]
     },
     "include": [
-        "src/**/*.ts",
-        "types/*.d.ts"
-        //"./node_modules/tidyjs/types/*.d.ts"
+        "./src/**/*.ts",
+        "./types/*.d.ts"
     ],
     "exclude": [
-        "out"
+        "out",
+        "node_modules"
     ]
 }

@@ -80,10 +80,13 @@ export interface TidyApiType extends _TidyApiType {
 }
 
 export type TidyOutBodyOf<R extends TidyApiType> = R['out'] extends { body: any } ? R['out']['body'] : undefined
+export type TidyApiInputCleaner<T extends TidyApiType> = (input: TidyApiIn<T>) => void
 
-export type TidyApiIn<T extends TidyApiType> = Pick<T, Exclude<keyof T, 'out'>> & {
-    _onClean?: () => void
+export interface TidyCleanableApiIn<T extends TidyApiType> {
+    cleanLater(cleaner: TidyApiInputCleaner<T>): void
 }
+
+export type TidyApiIn<T extends TidyApiType> = Pick<T, Exclude<keyof T, 'out'>> & TidyCleanableApiIn<T>
 
 export type TidyApiError = string | {}    //todo
 
@@ -109,15 +112,13 @@ export interface TidyApiEntry<R extends TidyApiType> {
 export interface TidyServerAppOptions {
     bodyLimit?: number
     useCookie?: boolean
-    upload?: {
-        fileSizeLimit?: number
-        tempDir: string
-    }
 }
+
+export type TidyApiInPrepareFunc = (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => void
 
 export interface TidyPlugin {
     create?: (app: _TidyUnderlingApp) => void
-    prepare?: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => TidyApiIn<TidyApiType>
+    prepare?: TidyApiInPrepareFunc
 }
 
 export interface _TidyUnderlingRequest {

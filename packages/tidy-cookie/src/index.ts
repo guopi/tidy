@@ -1,11 +1,18 @@
 import cookieParser from 'cookie-parser'
 import * as express from 'express'
-import { _TidyUnderlingApp, TidyPlugin } from 'tidyjs'
+import { _TidyUnderlingApp, _TidyUnderlingRequest, TidyApiIn, TidyApiType, TidyPlugin } from 'tidyjs'
+
+interface TidyApiTypeWithCookies extends TidyApiType {
+    cookies?: _TidyCookies
+}
 
 export function cookiePlugin(): TidyPlugin {
     return {
         create(app: _TidyUnderlingApp) {
             (app as any as express.Express).use(cookieParser())
+        },
+        prepare(req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) {
+            (input as TidyApiTypeWithCookies).cookies = (req as any as express.Request).cookies
         }
     }
 }

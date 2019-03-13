@@ -18,10 +18,11 @@
         ]
     },
     "include": [
-        "src/**/*.ts",
-        "types/*.d.ts"
+        "./src/**/*.ts",
+        "./types/*.d.ts"
     ],
     "exclude": [
-        "out"
+        "out",
+        "node_modules"
     ]
 }

@@ -1,20 +1,18 @@
 declare global {
     declare namespace Tidy {
         interface ApiType {
-            files?: tidyUpload.FileArray;
+            files?: _TidyUploadFiles;
         }
     }
 }
 
-declare namespace tidyUpload {
-    interface FileArray {
-        [name: string]: UploadedFile | UploadedFile[]
-    }
+interface _TidyUploadFile {
+    name: string;
+    encoding: string;
+    mimetype: string;
+    //todo
+}
 
-    interface UploadedFile {
-        name: string;
-        encoding: string;
-        mimetype: string;
-        //todo
-    }
+interface _TidyUploadFiles {
+    [name: string]: _TidyUploadFile | _TidyUploadFile[] | undefined
 }

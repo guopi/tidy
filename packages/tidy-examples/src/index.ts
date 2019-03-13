@@ -1,11 +1,16 @@
 import { pathOf, ServerApp } from 'tidyjs'
 import { cookiePlugin } from 'tidy-cookie'
-import { uploadPlugin } from 'tidy-upload'
+import { TidyUploadFile, uploadPlugin } from 'tidy-upload'
 
 interface API_Test {
     params: {
-        r1?: string
+        r1?: string,
     }
+    cookies: {
+        name1?: string
+        cookie2?: string
+    }
+    files: { a?: TidyUploadFile }
     out: {
         body: {
             r1?: string

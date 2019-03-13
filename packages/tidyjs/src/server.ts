@@ -3,20 +3,25 @@ import { createServer } from 'http'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
 import { AbstractResult, TidyApiImplement } from './result'
 import {
-    _TidyUnderlingApp, _TidyUnderlingResponse, TidyApiEntry,
+    _TidyUnderlingApp,
+    _TidyUnderlingResponse,
+    TidyApiEntry,
     TidyApiIn,
+    TidyApiInputCleaner,
     TidyApiMethod,
     TidyApiType,
-    TidyPlugin, TidyRoutePath,
+    TidyCleanableApiIn,
+    TidyPlugin,
+    TidyRoutePath,
     TidyRoutePaths,
     TidyServerAppOptions
 } from './types'
 
-type InputPrepareFunc = (req: express.Request, input: TidyApiIn<TidyApiType>) => TidyApiIn<TidyApiType>
+type ApiInPrepareFunc = (req: express.Request, input: TidyApiIn<TidyApiType>) => void
 
 export class ServerApp {
     private readonly _app: Express
-    private _prepareFuncs?: InputPrepareFunc[]
+    private _prepareFuncs?: ApiInPrepareFunc[]
 
     constructor(options?: TidyServerAppOptions) {
         const app = express()
@@ -38,25 +43,18 @@ export class ServerApp {
         if (plugin.prepare) {
             if (!this._prepareFuncs)
                 this._prepareFuncs = []
-            this._prepareFuncs.push(plugin.prepare as any as InputPrepareFunc)
+            this._prepareFuncs.push(plugin.prepare as any as ApiInPrepareFunc)
         }
     }
 
     on<R extends TidyApiType>(method: TidyApiMethod, path: TidyRoutePaths<R>, fn: TidyApiImplement<R>): this {
         const expressMethod: (path: PathParams, handlers: RequestHandler) => void = this._app[method]
         const expressHandler = (req: express.Request, resp: express.Response) => {
-            let input: TidyApiIn<R> = {
-                headers: req.headers,
-                params: req.params,
-                query: req.query,
-                body: req.body,
-                cookies: req.cookies
-            } as any
-
+            const input: ApiInputImpl<R> & TidyApiIn<R> = new ApiInputImpl(req) as any
             const prepares = this._prepareFuncs
             if (prepares) {
                 for (const f of prepares) {
-                    input = f(req, input) as TidyApiIn<R>
+                    f(req, input)
                 }
             }
 
@@ -71,8 +69,11 @@ export class ServerApp {
                 }
             }).catch(e => this._onError(e, resp))
 
-            if (input._onClean) {
-                promise.then(input._onClean, input._onClean)
+            if (input._cleans) {
+                const cleanUp = () => {
+                    input.cleanAll(e => this._onError(e, resp))
+                }
+                promise.then(cleanUp, cleanUp)
             }
         }
         if (Array.isArray(path)) {
@@ -130,3 +131,42 @@ function toExpressRoute(path: TidyRoutePath<any>): string {
     return ret
 }
 
+class ApiInputImpl<R extends TidyApiType> implements TidyCleanableApiIn<R> {
+    headers: R['headers']
+    params: R['params']
+    query: R['query']
+    body: R['body']
+
+    _cleans?: TidyApiInputCleaner<R>[]
+
+    constructor(req: express.Request) {
+        this.headers = req.headers
+        this.params = req.params
+        this.query = req.query
+        this.body = req.body
+    }
+
+    cleanLater(cleaner: TidyApiInputCleaner<R>) {
+        if (!this._cleans)
+            this._cleans = [cleaner]
+        else
+            this._cleans.unshift(cleaner)
+    }
+
+    cleanAll = (onError?: (error: any) => void) => {
+        if (this._cleans) {
+            for (const c of this._cleans) {
+                try {
+                    c(this as any as TidyApiIn<R>)
+                } catch (e) {
+                    if (onError)
+                        onError(e)
+                    else {
+                        //todo log
+                        console.warn('cleaner error', e)
+                    }
+                }
+            }
+        }
+    }
+}
