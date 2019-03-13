@@ -1,5 +1,5 @@
 {
-    "version": "0.0.5",
+    "version": "independent",
     "packages": [
         "packages/*"
     ],
@@ -7,9 +7,7 @@
     "command": {
         "publish": {
             "ignoreChanges": [
-                "ignored-file",
-                "test/**",
-                "example/**",
+                "__tests__/**",
                 "*.txt",
                 "*.md"
             ],

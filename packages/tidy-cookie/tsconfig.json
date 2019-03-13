@@ -20,6 +20,7 @@
     "include": [
         "src/**/*.ts",
         "types/*.d.ts"
+        //"./node_modules/tidyjs/types/*.d.ts"
     ],
     "exclude": [
         "out"

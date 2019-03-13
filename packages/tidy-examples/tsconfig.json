@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "module": "ESNext",
+        "module": "commonjs",
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "outDir": "./out",
@@ -12,14 +12,10 @@
         "skipLibCheck": true,
         "noImplicitAny": true,
         "experimentalDecorators": true,
-        "emitDecoratorMetadata": true,
-        "typeRoots": [
-            "./types"
-        ]
+        "emitDecoratorMetadata": true
     },
     "include": [
-        "src/**/*.ts",
-        "types/*.d.ts"
+        "src/**/*.ts"
     ],
     "exclude": [
         "out"
