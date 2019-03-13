@@ -1,5 +1,5 @@
 {
-    "version": "1.0.3",
+    "version": "1.0.4",
     "name": "tidy-upload",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -25,7 +25,7 @@
     "dependencies": {
         "@types/express-fileupload": "^0.4.0",
         "express-fileupload": "^1.1.1-alpha.2",
-        "tidyjs": "^1.0.3"
+        "tidyjs": "^1.0.4"
     },
     "devDependencies": {
         "rollup": "^1.6.0",
