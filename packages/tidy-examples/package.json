@@ -1,6 +1,6 @@
 {
     "name": "tidy-examples",
-    "version": "0.0.2",
+    "version": "0.0.3",
     "private": true,
     "description": "examples of tidyjs",
     "author": "guopi <guopi.pro@gmail.com>",
@@ -11,14 +11,14 @@
         "url": "git+https://github.com/guopi/tidy.git"
     },
     "scripts": {
-        "build" : "tsc"
+        "build": "tsc"
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
     "dependencies": {
-        "tidy-cookie": "^0.0.6",
-        "tidy-upload": "^1.0.0",
+        "tidy-cookie": "^0.0.7",
+        "tidy-upload": "^1.0.1",
         "tidyjs": "^0.0.6"
     },
     "devDependencies": {
