@@ -76,9 +76,6 @@ export interface TidyApiType extends _TidyApiType {
     params?: StringKeyDict
     query?: StringKeyDict
     body?: string | {} | TidySimpleData[]
-    files?: {
-        [k: string]: TidySimpleData
-    }
     out?: TidyApiOutType
 }
 
