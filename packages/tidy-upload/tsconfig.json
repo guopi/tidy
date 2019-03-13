@@ -1,0 +1,28 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "module": "ESNext",
+        "moduleResolution": "node",
+        "allowSyntheticDefaultImports": true,
+        "outDir": "./out",
+        "declaration": false,
+        // "declarationDir": "./out/dts",
+        "strict": true,
+        "allowJs": false,
+        "skipLibCheck": true,
+        "noImplicitAny": true,
+        "experimentalDecorators": true,
+        "emitDecoratorMetadata": true,
+        "typeRoots": [
+            "./types"
+        ]
+    },
+    "include": [
+        "src/**/*.ts",
+        "types/*.d.ts"
+        //"./node_modules/tidyjs/types/*.d.ts"
+    ],
+    "exclude": [
+        "out"
+    ]
+}

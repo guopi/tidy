@@ -1,9 +1,9 @@
 {
     "version": "0.0.6",
     "name": "tidy-cookie",
-    "author": "Li Guofeng <guopiguopi@gmail.com>",
+    "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
-    "description": "tidy cookie preprocessor",
+    "description": "tidy cookie plugin",
     "main": "lib/index.cjs.js",
     "module": "lib/index.esm.js",
     "types": "lib/index.d.ts",

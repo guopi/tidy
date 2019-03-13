@@ -1,10 +1,10 @@
 import cookieParser from 'cookie-parser'
 import * as express from 'express'
-import * as tidy from 'tidyjs'
+import { _TidyUnderlingApp, TidyPlugin } from 'tidyjs'
 
-export function cookiePlugin(): tidy.TidyPlugin {
+export function cookiePlugin(): TidyPlugin {
     return {
-        create(app: tidy._TidyUnderlingApp) {
+        create(app: _TidyUnderlingApp) {
             (app as any as express.Express).use(cookieParser())
         }
     }
