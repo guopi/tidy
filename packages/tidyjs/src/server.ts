@@ -126,7 +126,7 @@ export class ServerApp {
 
     private sendResult(to: express.Response, result: TidyApiOut<any>) {
         if (result instanceof AbstractResult)
-            result.send(to as any as _TidyUnderlingResponse)
+            result.end(to as any as _TidyUnderlingResponse)
         else if (typeof result === 'object')
             to.json(result)
         else {
