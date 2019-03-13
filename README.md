@@ -1,10 +1,12 @@
 # tidy
-tidy typescript framework web framework for node
+> A tidy Node.js framework for building server-side applications on top of TypeScript & JavaScript
 
-#examples
-1. run get-start sample
-
-    ts-node --files examples/get-start.ts
-    
-    curl 127.0.0.1:3000/test/123
-    
+#packages
+### tidyjs    
+> core server package
+### tidy-cookie    
+> tidy plugin : cookie parser 
+### tidy-upload
+> tidy plugin : upload ( multi-part) parser 
+### tidy-examples
+> some examples to use tidyjs
