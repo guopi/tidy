@@ -1,0 +1,26 @@
+{
+    "name": "tidy-examples",
+    "version": "0.0.1",
+    "private": true,
+    "description": "examples of tidyjs",
+    "author": "Li Guofeng <liguofeng@tigerants.com>",
+    "homepage": "https://github.com/guopi/tidy#readme",
+    "license": "ISC",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/guopi/tidy.git"
+    },
+    "scripts": {},
+    "bugs": {
+        "url": "https://github.com/guopi/tidy/issues"
+    },
+    "dependencies": {
+        "tidy-cookie": "^0.0.5",
+        "tidyjs": "^0.0.5"
+    },
+    "devDependencies": {
+        "ts-node": "^8.0.3",
+        "tslib": "^1.9.3",
+        "typescript": "^3.3.3333"
+    }
+}
