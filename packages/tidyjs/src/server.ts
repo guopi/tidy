@@ -19,6 +19,13 @@ import {
 
 export interface TidyPlugin {
     onPlug?: (app: _TidyUnderlingApp) => void
+
+    /**
+     * @param req
+     * @param input for prepare data
+     * @returns undefined : continue
+     * @returns TidyApiOut<any> : terminate immediately and return the result
+     */
     onFilter?: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => undefined | TidyApiOut<TidyApiType>
 }
 
