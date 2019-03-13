@@ -1,6 +1,7 @@
 import fileUpload from 'express-fileupload'
 import * as express from 'express'
 import { _TidyUnderlingApp, TidyApiIn, TidyApiType, TidyPlugin } from 'tidyjs'
+import { _TidyUnderlingRequest } from 'tidyjs/src'
 
 export interface UploadOptions {
     tempDir: string;
@@ -19,7 +20,7 @@ interface TidyApiTypeWithFiles extends TidyApiType {
 
 export function uploadPlugin(options: UploadOptions): TidyPlugin {
     return {
-        create(app: _TidyUnderlingApp) {
+        onPlug(app: _TidyUnderlingApp) {
             const opt: fileUpload.Options = {
                 useTempFiles: true,
                 tempFileDir: options.tempDir
@@ -31,10 +32,14 @@ export function uploadPlugin(options: UploadOptions): TidyPlugin {
             }
             (app as any as express.Express).use(fileUpload(opt))
         },
-        prepare: (req, input: TidyApiIn<TidyApiType>) => {
-            (input as TidyApiTypeWithFiles).files = (req as any as express.Request).files
-
-            return input
+        onFilter: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => {
+            if ((req as any as express.Request).files) {
+                (input as TidyApiTypeWithFiles).files = (req as any as express.Request).files
+                input.cleanLater(_in => {
+                    //todo clean upload files
+                })
+            }
+            return undefined
         }
     }
 }

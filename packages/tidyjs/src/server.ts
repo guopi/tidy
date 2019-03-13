@@ -1,9 +1,10 @@
 import express from 'express'
 import { createServer } from 'http'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
-import { AbstractResult, TidyApiImplement } from './result'
+import { AbstractResult, TidyApiImplement, TidyApiOut } from './result'
 import {
     _TidyUnderlingApp,
+    _TidyUnderlingRequest,
     _TidyUnderlingResponse,
     TidyApiEntry,
     TidyApiIn,
@@ -11,17 +12,21 @@ import {
     TidyApiMethod,
     TidyApiType,
     TidyCleanableApiIn,
-    TidyPlugin,
     TidyRoutePath,
     TidyRoutePaths,
     TidyServerAppOptions
 } from './types'
 
-type ApiInPrepareFunc = (req: express.Request, input: TidyApiIn<TidyApiType>) => void
+export interface TidyPlugin {
+    onPlug?: (app: _TidyUnderlingApp) => void
+    onFilter?: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => undefined | TidyApiOut<TidyApiType>
+}
+
+type PluginFilter = (req: express.Request, input: TidyApiIn<TidyApiType>) => undefined | TidyApiOut<TidyApiType>
 
 export class ServerApp {
     private readonly _app: Express
-    private _prepareFuncs?: ApiInPrepareFunc[]
+    private _filters?: PluginFilter[]
 
     constructor(options?: TidyServerAppOptions) {
         const app = express()
@@ -38,12 +43,12 @@ export class ServerApp {
     }
 
     use(plugin: TidyPlugin): void {
-        if (plugin.create)
-            plugin.create(this._app as any as _TidyUnderlingApp)
-        if (plugin.prepare) {
-            if (!this._prepareFuncs)
-                this._prepareFuncs = []
-            this._prepareFuncs.push(plugin.prepare as any as ApiInPrepareFunc)
+        if (plugin.onPlug)
+            plugin.onPlug(this._app as any as _TidyUnderlingApp)
+        if (plugin.onFilter) {
+            if (!this._filters)
+                this._filters = []
+            this._filters.push(plugin.onFilter as any as PluginFilter)
         }
     }
 
@@ -51,22 +56,19 @@ export class ServerApp {
         const expressMethod: (path: PathParams, handlers: RequestHandler) => void = this._app[method]
         const expressHandler = (req: express.Request, resp: express.Response) => {
             const input: ApiInputImpl<R> & TidyApiIn<R> = new ApiInputImpl(req) as any
-            const prepares = this._prepareFuncs
-            if (prepares) {
-                for (const f of prepares) {
-                    f(req, input)
+            const filters = this._filters
+            if (filters) {
+                for (const f of filters) {
+                    const r = f(req, input)
+                    if (r !== undefined) {
+                        this.sendResult(resp, r)
+                        return
+                    }
                 }
             }
 
             const promise = fn(input).then(r => {
-                if (r instanceof AbstractResult)
-                    r.send(resp as any as _TidyUnderlingResponse)
-                else if (typeof r === 'object')
-                    resp.json(r)
-                else {
-                    //todo error type
-                    this._onError('wrong result type', resp)
-                }
+                this.sendResult(resp, r)
             }).catch(e => this._onError(e, resp))
 
             if (input._cleans) {
@@ -113,6 +115,17 @@ export class ServerApp {
             host,
             backlog
         })
+    }
+
+    private sendResult(to: express.Response, result: TidyApiOut<any>) {
+        if (result instanceof AbstractResult)
+            result.send(to as any as _TidyUnderlingResponse)
+        else if (typeof result === 'object')
+            to.json(result)
+        else {
+            //todo error type
+            this._onError('wrong result type', to)
+        }
     }
 }
 

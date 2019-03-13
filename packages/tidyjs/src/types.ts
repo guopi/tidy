@@ -114,13 +114,6 @@ export interface TidyServerAppOptions {
     useCookie?: boolean
 }
 
-export type TidyApiInPrepareFunc = (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => void
-
-export interface TidyPlugin {
-    create?: (app: _TidyUnderlingApp) => void
-    prepare?: TidyApiInPrepareFunc
-}
-
 export interface _TidyUnderlingRequest {
     __dummyReq__(): void
 }

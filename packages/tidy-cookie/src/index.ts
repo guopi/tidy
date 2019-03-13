@@ -8,11 +8,12 @@ interface TidyApiTypeWithCookies extends TidyApiType {
 
 export function cookiePlugin(): TidyPlugin {
     return {
-        create(app: _TidyUnderlingApp) {
+        onPlug(app: _TidyUnderlingApp) {
             (app as any as express.Express).use(cookieParser())
         },
-        prepare(req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) {
+        onFilter(req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) {
             (input as TidyApiTypeWithCookies).cookies = (req as any as express.Request).cookies
+            return undefined
         }
     }
 }
