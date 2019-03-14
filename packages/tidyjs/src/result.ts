@@ -93,4 +93,4 @@ export class TextResult extends BaseResult {
 }
 
 export type TidyApiOut<R extends TidyApiType> = TidyOutBodyOf<R> | JsonResult<R['out']> | BaseResult
-export type TidyApiImplement<R extends TidyApiType> = (input: TidyApiIn<R>) => Promise<TidyApiOut<R>>
+export type TidyApiImplement<R extends TidyApiType> = (input: TidyApiIn<R>) => TidyApiOut<R> | Promise<TidyApiOut<R>>

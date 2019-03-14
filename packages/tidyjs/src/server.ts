@@ -74,9 +74,11 @@ export class ServerApp {
                 }
             }
 
-            const promise = fn(input).then(r => {
-                this.sendResult(resp, r)
-            }).catch(e => this._onError(e, resp))
+            const promise = Promise.resolve(fn(input))
+                .then(r => {
+                    this.sendResult(resp, r)
+                })
+                .catch(e => this._onError(e, resp))
 
             if (input._cleans) {
                 const cleanUp = () => {
