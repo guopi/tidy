@@ -1,5 +1,5 @@
 {
-    "version": "1.0.3",
+    "version": "1.0.4",
     "name": "tidy-cookie",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -24,11 +24,11 @@
     },
     "dependencies": {
         "cookie-parser": "^1.4.4",
-        "tidyjs": "^1.0.5"
+        "tidyjs": "^1.0.6"
     },
     "devDependencies": {
-        "@types/express": "^4.16.1",
         "@types/cookie-parser": "^1.4.1",
+        "@types/express": "^4.16.1",
         "rollup": "^1.6.0",
         "rollup-plugin-dts": "^0.13.0",
         "rollup-plugin-typescript2": "^0.19.3",
