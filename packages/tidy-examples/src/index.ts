@@ -23,7 +23,7 @@ const app = new ServerApp()
 app.use(cookiePlugin())
 app.use(uploadPlugin({ tempDir: '/tmp' }))
 
-app.onAll<API_Test>([pathOf`/test/${'r1'}`, pathOf`/test2/${'r1'}`], async input => {
+app.onAll<API_Test>([pathOf`/test/${'r1'}`, pathOf`/test2/${'r1'}`], input => {
     return {
         r1: '',
         r2: 1,
