@@ -25,8 +25,8 @@ Under the hood, tidyjs makes use of [Express](https://github.com/expressjs/expre
 | Project | Status | Description |
 |---------|--------|-------------|
 | [tidyjs] | ![tidyjs-version] | core project|
-| [tidy-cookie] | ![tidy-cookie-version] | core project|
-| [tidy-upload] | ![tidy-upload-version] | core project|
+| [tidy-cookie] | ![tidy-cookie-version] | plugin for parse cookie |
+| [tidy-upload] | ![tidy-upload-version] | plugin for parse multipart request |
 
 ## Installation
 ```
