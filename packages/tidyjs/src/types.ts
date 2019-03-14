@@ -80,14 +80,14 @@ export interface TidyApiType extends _TidyApiType {
     out?: TidyApiOutType
 }
 
-export type TidyOutBodyOf<R extends TidyApiType> = R['out'] extends { body: any } ? R['out']['body'] : undefined
-export type TidyApiInputCleaner<T extends TidyApiType> = (input: TidyApiIn<T>) => void
+export type TidyApiOutBody<R extends TidyApiType> = R['out'] extends { body: any } ? R['out']['body'] : undefined
+export type TidyApiInputCleaner<T extends TidyApiType> = (input: TidyApiInput<T>) => void
 
-export interface TidyCleanableApiIn<T extends TidyApiType> {
+export interface TidyApiInputMethods<T extends TidyApiType> {
     cleanLater(cleaner: TidyApiInputCleaner<T>): void
 }
 
-export type TidyApiIn<T extends TidyApiType> = Pick<T, Exclude<keyof T, 'out'>> & TidyCleanableApiIn<T>
+export type TidyApiInput<T extends TidyApiType> = Pick<T, Exclude<keyof T, 'out'>> & TidyApiInputMethods<T>
 
 export type TidyApiError = string | {}    //todo
 
@@ -115,14 +115,3 @@ export interface TidyServerAppOptions {
     useCookie?: boolean
 }
 
-export interface _TidyUnderlingRequest {
-    __dummyReq__(): void
-}
-
-export interface _TidyUnderlingResponse {
-    __dummyResp__(): void
-}
-
-export interface _TidyUnderlingApp {
-    __dummyApp__(): void
-}

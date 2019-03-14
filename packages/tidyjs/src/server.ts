@@ -1,21 +1,20 @@
 import express from 'express'
 import { createServer } from 'http'
 import { Express, PathParams, RequestHandler } from 'express-serve-static-core'
-import { AbstractResult, TidyApiImplement, TidyApiOut } from './result'
+import { AbstractResult, TidyApiImplement, TidyApiResult } from './result'
 import {
-    _TidyUnderlingApp,
-    _TidyUnderlingRequest,
-    _TidyUnderlingResponse,
     TidyApiEntry,
-    TidyApiIn,
+    TidyApiInput,
     TidyApiInputCleaner,
     TidyApiMethod,
     TidyApiType,
-    TidyCleanableApiIn,
+    TidyApiInputMethods,
     TidyRoutePath,
     TidyRoutePaths,
     TidyServerAppOptions
 } from './types'
+
+import { _TidyUnderlingApp, _TidyUnderlingRequest } from './underling'
 
 export interface TidyPlugin {
     onPlug?: (app: _TidyUnderlingApp) => void
@@ -24,16 +23,14 @@ export interface TidyPlugin {
      * @param req
      * @param input for prepare data
      * @returns undefined : continue
-     * @returns TidyApiOut<any> : terminate immediately and return the result
+     * @returns TidyApiResult<any> : terminate immediately and return the result
      */
-    onFilter?: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => undefined | TidyApiOut<TidyApiType>
+    onFilter?: (req: _TidyUnderlingRequest, input: TidyApiInput<TidyApiType>) => undefined | TidyApiResult<TidyApiType>
 }
-
-type PluginFilter = (req: express.Request, input: TidyApiIn<TidyApiType>) => undefined | TidyApiOut<TidyApiType>
 
 export class ServerApp {
     private readonly _app: Express
-    private _filters?: PluginFilter[]
+    private _filters?: NonNullable<TidyPlugin['onFilter']>[]
 
     constructor(options?: TidyServerAppOptions) {
         const app = express()
@@ -51,18 +48,18 @@ export class ServerApp {
 
     use(plugin: TidyPlugin): void {
         if (plugin.onPlug)
-            plugin.onPlug(this._app as any as _TidyUnderlingApp)
+            plugin.onPlug(this._app)
         if (plugin.onFilter) {
             if (!this._filters)
                 this._filters = []
-            this._filters.push(plugin.onFilter as any as PluginFilter)
+            this._filters.push(plugin.onFilter)
         }
     }
 
     on<R extends TidyApiType>(method: TidyApiMethod, path: TidyRoutePaths<R>, fn: TidyApiImplement<R>): this {
         const expressMethod: (path: PathParams, handlers: RequestHandler) => void = this._app[method]
         const expressHandler = (req: express.Request, resp: express.Response) => {
-            const input: ApiInputImpl<R> & TidyApiIn<R> = new ApiInputImpl(req) as any
+            const input: ApiInputImpl<R> & TidyApiInput<R> = new ApiInputImpl(req) as any
             const filters = this._filters
             if (filters) {
                 for (const f of filters) {
@@ -126,9 +123,9 @@ export class ServerApp {
         })
     }
 
-    private sendResult(to: express.Response, result: TidyApiOut<any>) {
+    private sendResult(to: express.Response, result: TidyApiResult<any>) {
         if (result instanceof AbstractResult)
-            result.end(to as any as _TidyUnderlingResponse)
+            result.end(to)
         else if (typeof result === 'object')
             to.json(result)
         else {
@@ -147,13 +144,13 @@ function toExpressRoute(path: TidyRoutePath<any>): string {
     for (const part of path.parts) {
         ret += (typeof part === 'string'
                 ? part
-                : (part.pattern ? `:${part.param as any}(${part.pattern})` : `:${part.param as any}`)
+                : (part.pattern ? `:${part.param}(${part.pattern})` : `:${part.param}`)
         )
     }
     return ret
 }
 
-class ApiInputImpl<R extends TidyApiType> implements TidyCleanableApiIn<R> {
+class ApiInputImpl<R extends TidyApiType> implements TidyApiInputMethods<R> {
     headers: R['headers']
     params: R['params']
     query: R['query']
@@ -179,7 +176,7 @@ class ApiInputImpl<R extends TidyApiType> implements TidyCleanableApiIn<R> {
         if (this._cleans) {
             for (const c of this._cleans) {
                 try {
-                    c(this as any as TidyApiIn<R>)
+                    c(this as any as TidyApiInput<R>)
                 } catch (e) {
                     if (onError)
                         onError(e)

@@ -1,7 +1,6 @@
 import fileUpload from 'express-fileupload'
 import * as express from 'express'
-import { _TidyUnderlingApp, TidyApiIn, TidyApiType, TidyPlugin } from 'tidyjs'
-import { _TidyUnderlingRequest } from 'tidyjs/src'
+import { _TidyUnderlingApp, _TidyUnderlingRequest, TidyApiInput, TidyApiType, TidyPlugin } from 'tidyjs'
 
 export interface UploadOptions {
     tempDir: string;
@@ -30,11 +29,11 @@ export function uploadPlugin(options: UploadOptions): TidyPlugin {
                     fileSize: options.fileSizeLimit
                 }
             }
-            (app as any as express.Express).use(fileUpload(opt))
+            app.use(fileUpload(opt))
         },
-        onFilter: (req: _TidyUnderlingRequest, input: TidyApiIn<TidyApiType>) => {
-            if ((req as any as express.Request).files) {
-                (input as TidyApiTypeWithFiles).files = (req as any as express.Request).files
+        onFilter: (req: _TidyUnderlingRequest, input: TidyApiInput<TidyApiType>) => {
+            if (req.files) {
+                (input as TidyApiTypeWithFiles).files = req.files
                 input.cleanLater(_in => {
                     //todo clean upload files
                 })

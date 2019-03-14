@@ -1,12 +1,5 @@
-import ex from 'express'
-import {
-    _TidyUnderlingResponse,
-    TidyApiIn,
-    TidyApiOutType,
-    TidyApiType,
-    TidyNonNilSimpleData,
-    TidyOutBodyOf
-} from './types'
+import { TidyApiInput, TidyApiOutType, TidyApiType, TidyNonNilSimpleData, TidyApiOutBody } from './types'
+import { _TidyUnderlingResponse } from './underling'
 
 type ResponseAction = (resp: _TidyUnderlingResponse) => void
 
@@ -31,8 +24,8 @@ export abstract class AbstractResult {
             this._actions = [action]
     }
 
-    status(code: number) {
-        this.addAction(resp => (resp as any as ex.Response).status(code))
+    code(code: number) {
+        this.addAction(resp => resp.status(code))
     }
 
     /**
@@ -47,11 +40,11 @@ export abstract class AbstractResult {
      *     res.type('png');
      */
     type(type: string) {
-        this.addAction(resp => (resp as any as ex.Response).contentType(type))
+        this.addAction(resp => resp.contentType(type))
     }
 
     header(field: string, value: string) {
-        this.addAction(resp => (resp as any as ex.Response).header(field, value))
+        this.addAction(resp => resp.header(field, value))
     }
 }
 
@@ -62,7 +55,7 @@ export class JsonResult<Resp extends TidyApiOutType | undefined> extends Abstrac
 
     protected _end(resp: _TidyUnderlingResponse): void {
         if (this.json)
-            (resp as any as ex.Response).json(this.json)
+            resp.json(this.json)
     }
 }
 
@@ -76,7 +69,7 @@ export class ErrorResult extends BaseResult {
     }
 
     protected _end(resp: _TidyUnderlingResponse): void {
-        (resp as any as ex.Response).json({
+        resp.json({
             error: this.error
         })
     }
@@ -88,9 +81,9 @@ export class TextResult extends BaseResult {
     }
 
     protected _end(resp: _TidyUnderlingResponse): void {
-        (resp as any as ex.Response).send(this.text)
+        resp.send(this.text)
     }
 }
 
-export type TidyApiOut<R extends TidyApiType> = TidyOutBodyOf<R> | JsonResult<R['out']> | BaseResult
-export type TidyApiImplement<R extends TidyApiType> = (input: TidyApiIn<R>) => TidyApiOut<R> | Promise<TidyApiOut<R>>
+export type TidyApiResult<R extends TidyApiType> = TidyApiOutBody<R> | JsonResult<R['out']> | BaseResult
+export type TidyApiImplement<R extends TidyApiType> = (input: TidyApiInput<R>) => TidyApiResult<R> | Promise<TidyApiResult<R>>
