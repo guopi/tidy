@@ -12,12 +12,14 @@
     },
     "scripts": {
         "build": "tsc",
-        "get-start": "ts-node --files ./src/get-start.ts"
+        "get-start": "ts-node --files ./src/get-start.ts",
+        "cookie": "ts-node --files ./src/cookie.ts"
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
     "dependencies": {
+        "tidy-cookie": "^1.0.4",
         "tidyjs": "^1.0.6"
     },
     "devDependencies": {
