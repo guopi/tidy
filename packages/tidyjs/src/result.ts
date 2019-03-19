@@ -1,89 +1,125 @@
-import { TidyApiInput, TidyApiOutType, TidyApiType, TidyNonNilSimpleData, TidyApiOutBody } from './types'
-import { _TidyUnderlingResponse } from './underling'
-
-type ResponseAction = (resp: _TidyUnderlingResponse) => void
+import http from 'http'
+import { TidyBaseResponseType, TidyResponseBody } from './types'
 
 export abstract class AbstractResult {
-    private _actions ?: ResponseAction[]
+    protected _headers?: http.OutgoingHttpHeaders
+    public statusCode?: number
+    public statusMessage?: string
 
-    end(resp: _TidyUnderlingResponse): void {
-        if (this._actions) {
-            for (const action of this._actions) {
-                action(resp)
+    abstract end(resp: http.ServerResponse): void;
+
+    protected _sendHead(resp: http.ServerResponse) {
+        resp.statusCode = this.statusCode !== undefined ? this.statusCode : 200
+
+        if (this.statusMessage !== undefined)
+            resp.statusMessage = this.statusMessage
+
+        const headers = this._headers
+        if (headers !== undefined) {
+            for (const name in headers) {
+                const value = headers[name]
+                if (value !== undefined)
+                    resp.setHeader(name, value)
             }
         }
-        this._end(resp)
     }
 
-    protected abstract _end(resp: _TidyUnderlingResponse): void
+    set type(type: string | undefined) {
+        this.header('Content-Type', type)
+    }
 
-    addAction(action: ResponseAction) {
-        if (this._actions)
-            this._actions.push(action)
+    get type(): string | undefined {
+        const type = this.getStringHeader('Content-Type')
+        return type ? type.split(';', 1)[0] : ''
+    }
+
+    header(name: string, value: number | string | string[] | undefined): this {
+        if (value !== undefined) {
+            if (!this._headers)
+                this._headers = {}
+            this._headers[name] = value
+        } else if (this._headers) {
+            delete this._headers[name]
+        }
+        return this
+    }
+
+    headers(dict: http.OutgoingHttpHeaders): this {
+        if (this._headers)
+            Object.assign(this._headers, dict)
         else
-            this._actions = [action]
+            this._headers = { ...dict }
+        return this
     }
 
-    code(code: number) {
-        this.addAction(resp => resp.status(code))
+    removeHeader(name: string) {
+        if (this._headers) {
+            delete this._headers[name]
+        }
+        return this
     }
 
-    /**
-     * Set Content-Type response header with `type` through `mime.lookup()`
-     * when it does not contain "/", or set the Content-Type to `type` otherwise.
-     *
-     * Examples:
-     *     res.type('.html');
-     *     res.type('html');
-     *     res.type('json');
-     *     res.type('application/json');
-     *     res.type('png');
-     */
-    type(type: string) {
-        this.addAction(resp => resp.contentType(type))
+    getHeader(name: string): number | string | string[] | undefined {
+        return this._headers
+            ? this._headers[name]
+            : undefined
     }
 
-    header(field: string, value: string) {
-        this.addAction(resp => resp.header(field, value))
+    getStringHeader(name: string): string | undefined {
+        let value = this.getHeader(name)
+        if (Array.isArray(value))
+            value = value[0]
+
+        if (value) {
+            if (typeof value !== 'string')
+                value = value.toString()
+            return value
+        }
+        return undefined
     }
 }
 
-export class JsonResult<Resp extends TidyApiOutType | undefined> extends AbstractResult {
-    constructor(readonly json: Resp) {
+export class JsonResult<BODY extends TidyBaseResponseType> extends AbstractResult {
+    constructor(private _json: BODY) {
         super()
     }
 
-    protected _end(resp: _TidyUnderlingResponse): void {
-        if (this.json)
-            resp.json(this.json)
+    end(resp: http.ServerResponse): void {
+        this._sendHead(resp)
+        this.type = 'application/json'
+        resp.end(JSON.stringify(this._json))
     }
 }
 
-export abstract class BaseResult extends AbstractResult {
-    protected abstract _end(resp: _TidyUnderlingResponse): void
+export abstract class TidyResult extends AbstractResult {
 }
 
-export class ErrorResult extends BaseResult {
-    constructor(readonly error: TidyNonNilSimpleData) {
+export class HeadResult extends TidyResult {
+    end(resp: http.ServerResponse): void {
+        this._sendHead(resp)
+    }
+}
+
+export class TextResult extends TidyResult {
+    constructor(private _text: string | undefined) {
         super()
     }
 
-    protected _end(resp: _TidyUnderlingResponse): void {
-        resp.json({
-            error: this.error
-        })
+    end(resp: http.ServerResponse): void {
+        this._sendHead(resp)
+        this.type = 'text/plain'
+        resp.end(this._text)
     }
 }
 
-export class TextResult extends BaseResult {
-    constructor(readonly text: string) {
-        super()
-    }
+export type TidyProcessReturnEntity<RESP extends TidyBaseResponseType = TidyBaseResponseType> =
+    TidyResponseBody<RESP>
+    | JsonResult<RESP>
+    | TidyResult
+    | undefined
 
-    protected _end(resp: _TidyUnderlingResponse): void {
-        resp.send(this.text)
-    }
-}
+export type TidyProcessReturn<RESP extends TidyBaseResponseType = TidyBaseResponseType> =
+    TidyProcessReturnEntity<RESP>
+    | Promise<TidyProcessReturnEntity<RESP>>
 
-export type TidyApiResult<R extends TidyApiType> = TidyApiOutBody<R> | JsonResult<R['out']> | BaseResult
-export type TidyApiImplement<R extends TidyApiType> = (input: TidyApiInput<R>) => TidyApiResult<R> | Promise<TidyApiResult<R>>
+export type TidyErrorProcessor = (err: any) => TidyProcessReturn<any>
