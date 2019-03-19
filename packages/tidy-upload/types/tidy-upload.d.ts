@@ -7,10 +7,12 @@ declare global {
 }
 
 interface _TidyUploadFile {
+    size: number;
+    path: string;
     name: string;
-    encoding: string;
-    mimetype: string;
-    //todo
+    type: string;
+    lastModifiedDate?: Date;
+    hash?: string;
 }
 
 interface _TidyUploadFiles {

@@ -12,7 +12,10 @@ const dtsInTypes = readdirSync(typesDir)
     .map(name => `// merge from ${typesDir}/${name}\n${readFileSync(`${typesDir}/${name}`, 'utf8').trim()}`)
     .join('\n\n') + '\n\n// generate by rollup-plugin-dts\n'
 
-const external = Object.keys(pkg.dependencies || {})
+const external = [
+    ...Object.keys(pkg.dependencies || {}),
+    'fs',
+]
 
 export default [
     {

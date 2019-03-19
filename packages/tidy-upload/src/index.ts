@@ -1,44 +1,136 @@
-import fileUpload from 'express-fileupload'
-import * as express from 'express'
-import { _TidyUnderlingApp, _TidyUnderlingRequest, TidyApiInput, TidyApiType, TidyPlugin } from 'tidyjs'
+import {
+    NamedDict,
+    TidyBaseRequestType,
+    TidyNextProcessor,
+    TidyProcessContext,
+    TidyProcessor,
+    TidyProcessReturnPromise
+} from 'tidyjs'
+import http from 'http'
+import * as formidable from 'formidable'
+import fs from 'fs'
+
+const coBusboy = require('co-busboy')
+
+export type WithFiles<T> = T & {
+    files?: _TidyUploadFiles
+    _disableFileParser?: boolean
+}
 
 export interface UploadOptions {
-    tempDir: string;
-    fileSizeLimit?: number;
+    onFileBegin?: (name: string, file: formidable.File) => void
 }
 
-export interface TidyUploadFiles extends _TidyUploadFiles {
-}
-
-export interface TidyUploadFile extends _TidyUploadFile {
-}
-
-interface TidyApiTypeWithFiles extends TidyApiType {
-    files?: TidyUploadFiles
-}
-
-export function uploadPlugin(options: UploadOptions): TidyPlugin {
-    return {
-        onPlug(app: _TidyUnderlingApp) {
-            const opt: fileUpload.Options = {
-                useTempFiles: true,
-                tempFileDir: options.tempDir
+export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: UploadOptions): TidyProcessor<REQ, WithFiles<REQ>> {
+    const opts = options || {}
+    return async function cookieParser(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<WithFiles<REQ>>): TidyProcessReturnPromise<any> {
+        const req = (ctx.req as WithFiles<REQ>)
+        let files: _TidyUploadFiles | undefined
+        if (req.files === undefined && !req._disableFileParser) {
+            if (ctx.method.toUpperCase() === 'POST' && ctx.is('multipart/*')) {
+                const parsed = await _parseForm(req._origin, opts)
+                req.files = files = parsed.files
+                req.body = parsed.body
             }
-            if (options.fileSizeLimit) {
-                opt.limits = {
-                    fileSize: options.fileSizeLimit
+        }
+
+        const deletable = _deletableFilePaths(files)
+        if (deletable) {
+            const ret = await Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
+            _deleteFiles(deletable)
+            return ret
+        } else {
+            return next(ctx as TidyProcessContext<WithFiles<REQ>>)
+        }
+
+    }
+}
+
+function _deletableFilePaths(files?: _TidyUploadFiles): string[] | undefined {
+    if (!files)
+        return undefined
+
+    const paths: string[] = []
+    for (const name in files) {
+        const file = files[name]
+        if (file) {
+            if (Array.isArray(file)) {
+                for (const f of file) {
+                    if (f.path)
+                        paths.push(f.path)
                 }
+            } else if (file.path) {
+                paths.push(file.path)
             }
-            app.use(fileUpload(opt))
-        },
-        onFilter: (req: _TidyUnderlingRequest, input: TidyApiInput<TidyApiType>) => {
-            if (req.files) {
-                (input as TidyApiTypeWithFiles).files = req.files
-                input.cleanLater(_in => {
-                    //todo clean upload files
-                })
-            }
-            return undefined
         }
     }
+    return paths.length > 0 ? paths : undefined
+}
+
+interface FileErrors {
+    [path: string]: any
+}
+
+async function _deleteFiles(paths: string[]): Promise<FileErrors> {
+    const errors: FileErrors = {}
+    return new Promise((resolve, reject) => {
+        let n = paths.length
+        for (const path of paths) {
+            fs.unlink(path, err => {
+                n--
+                if (err)
+                    errors[path] = err
+                if (n <= 0)
+                    resolve(errors)
+            })
+        }
+    })
+}
+
+interface ParsedForm {
+    files: _TidyUploadFiles
+    body: NamedDict
+}
+
+async function _parseForm(req: http.IncomingMessage, options: UploadOptions): Promise<ParsedForm> {
+    return new Promise(function (resolve, reject) {
+        const files: _TidyUploadFiles = {}
+        const body: NamedDict = {}
+
+        const form = new (formidable.IncomingForm as any)(options as any) as formidable.IncomingForm
+        form.on('end', function () {
+            return resolve({
+                body,
+                files
+            })
+        }).on('error', (err: any) => {
+            return reject(err)
+        }).on('field', function (name: string, value: string) {
+            const current = body[name]
+            if (current) {
+                if (Array.isArray(current)) {
+                    current.push(value)
+                } else {
+                    body[name] = [current, value]
+                }
+            } else {
+                body[name] = value
+            }
+        }).on('file', function (name: string, file: formidable.File) {
+            let current = files[name]
+            if (current) {
+                if (Array.isArray(current)) {
+                    current.push(file)
+                } else {
+                    files[name] = [current, file]
+                }
+            } else {
+                files[name] = file
+            }
+        })
+        if (options.onFileBegin) {
+            form.on('fileBegin', options.onFileBegin)
+        }
+        form.parse(req)
+    })
 }

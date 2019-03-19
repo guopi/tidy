@@ -3,11 +3,11 @@ import http from 'http'
 export type TidyNonNilSimpleData = boolean | number | string | any[] | {}
 export type TidySimpleData = TidyNonNilSimpleData | null | undefined
 
-interface NamedStringDict {
+export interface NamedStringDict {
     [name: string]: string
 }
 
-interface NamedDict {
+export interface NamedDict {
     [name: string]: TidySimpleData
 }
 

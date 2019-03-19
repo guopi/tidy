@@ -23,11 +23,12 @@
         "url": "https://github.com/guopi/tidy/issues"
     },
     "dependencies": {
-        "express-fileupload": "^1.1.1-alpha.2",
+        "co-busboy": "^1.4.0",
+        "formidable": "^1.2.1",
         "tidyjs": "^1.0.6"
     },
     "devDependencies": {
-        "@types/express-fileupload": "^0.4.0",
+        "@types/formidable": "^1.0.31",
         "rollup": "^1.6.0",
         "rollup-plugin-dts": "^0.13.0",
         "rollup-plugin-typescript2": "^0.19.3",
