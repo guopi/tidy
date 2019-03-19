@@ -17,10 +17,6 @@
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
-    "del-dependencies": {
-        "tidy-cookie": "^1.0.4",
-        "tidy-upload": "^1.0.6"
-    },
     "dependencies": {
         "tidyjs": "^1.0.6"
     },
