@@ -85,8 +85,8 @@ export class JsonResult<BODY extends TidyBaseResponseType> extends AbstractResul
     }
 
     end(resp: http.ServerResponse): void {
-        this._sendHead(resp)
         this.type = 'application/json'
+        this._sendHead(resp)
         resp.end(JSON.stringify(this._json))
     }
 }
@@ -97,6 +97,7 @@ export abstract class TidyResult extends AbstractResult {
 export class HeadResult extends TidyResult {
     end(resp: http.ServerResponse): void {
         this._sendHead(resp)
+        resp.end()
     }
 }
 
@@ -106,8 +107,8 @@ export class TextResult extends TidyResult {
     }
 
     end(resp: http.ServerResponse): void {
-        this._sendHead(resp)
         this.type = 'text/plain'
+        this._sendHead(resp)
         resp.end(this._text)
     }
 }

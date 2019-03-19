@@ -11,14 +11,17 @@
         "url": "git+https://github.com/guopi/tidy.git"
     },
     "scripts": {
-        "build": "tsc"
+        "build": "tsc",
+        "get-start": "ts-node --files ./src/get-start.ts"
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
-    "dependencies": {
+    "del-dependencies": {
         "tidy-cookie": "^1.0.4",
-        "tidy-upload": "^1.0.6",
+        "tidy-upload": "^1.0.6"
+    },
+    "dependencies": {
         "tidyjs": "^1.0.6"
     },
     "devDependencies": {

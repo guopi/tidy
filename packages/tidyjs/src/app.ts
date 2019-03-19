@@ -7,6 +7,22 @@ import { defaultErrorProcessor } from './error'
 export class TidyProcessContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     constructor(public req: REQ, public onError: TidyErrorProcessor) {
     }
+
+    get url(): string {
+        return this.req._origin.url!
+    }
+
+    get httpVersion(): string {
+        return this.req._origin.httpVersion!
+    }
+
+    get method(): string {
+        return this.req._origin.method!
+    }
+
+    get headers(): REQ['headers'] {
+        return this.req.headers
+    }
 }
 
 export type TidyNextProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>
@@ -16,11 +32,6 @@ export type TidyProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType,
     REQ2 extends TidyBaseRequestType = TidyBaseRequestType>
     = (ctx: TidyProcessContext<REQ>, next?: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
 
-export interface TidyProcessorLike<REQ extends TidyBaseRequestType = TidyBaseRequestType,
-    REQ2 extends TidyBaseRequestType = TidyBaseRequestType> {
-    asTidyProcessor(): TidyProcessor<REQ, REQ2>
-}
-
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     private _processors: TidyProcessor<any, any>[] = []
 
@@ -29,12 +40,8 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
      * @param fn {TidyProcessor} processor
      * @returns this
      */
-    public use<REQ2 extends TidyBaseRequestType = TidyBaseRequestType>
-    (processor: TidyProcessor<REQ, REQ2> | TidyProcessorLike<REQ, REQ2>): TidyServerApp<REQ2> {
-        this._processors.push((processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor
-            ? (processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor()
-            : (processor as TidyProcessor<REQ, REQ2>)
-        )
+    public use<REQ2 extends TidyBaseRequestType = TidyBaseRequestType>(processor: TidyProcessor<REQ, REQ2>): TidyServerApp<REQ2> {
+        this._processors.push(processor)
         return this as any as TidyServerApp<REQ2>
     }
 
@@ -68,8 +75,10 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
         Promise.resolve(fn(ctx, _defaultProcessor))
             .then(_send)
             .catch(err => {
-                Promise.resolve(_onerror(err))
-                    .then(_send)
+                if (err != undefined) {
+                    Promise.resolve(_onerror(err))
+                        .then(_send)
+                }
             })
     }
 }

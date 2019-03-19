@@ -1,5 +1,6 @@
 import http from 'http'
-import { TextResult, TidyProcessReturn } from './result'
+import { AbstractResult, TextResult, TidyProcessReturn, TidyResult } from './result'
+import { TidySimpleData } from './types'
 
 export interface TidyHttpError {
     statusCode?: number
@@ -9,8 +10,11 @@ export interface TidyHttpError {
 }
 
 export function defaultErrorProcessor(err: any): TidyProcessReturn<any> {
-    if (null == err)
+    if (undefined == err)
         return undefined
+
+    if (err instanceof AbstractResult)
+        return err
 
     const hError = err as TidyHttpError
 
@@ -40,4 +44,19 @@ export function defaultErrorProcessor(err: any): TidyProcessReturn<any> {
         r.statusMessage = statusMessage
 
     return r
+}
+
+export class ErrorResult extends TidyResult {
+    constructor(private error: TidySimpleData, code?: number) {
+        super()
+        this.statusCode = code
+    }
+
+    end(resp: http.ServerResponse): void {
+        this.type = 'application/json'
+        this._sendHead(resp)
+        resp.end(JSON.stringify({
+            error: this.error
+        }))
+    }
 }

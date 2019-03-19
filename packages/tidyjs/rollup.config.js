@@ -15,6 +15,7 @@ const dtsInTypes = readdirSync(typesDir)
 const external = [
     ...Object.keys(pkg.dependencies || {}),
     'http',
+    'net'
 ]
 
 export default [
