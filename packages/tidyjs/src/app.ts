@@ -3,33 +3,13 @@ import { TidyBaseRequestType } from './types'
 import { AbstractResult, HeadResult, TidyErrorProcessor, TidyProcessReturn, TidyProcessReturnEntity } from './result'
 import { ListenOptions } from 'net'
 import { defaultErrorProcessor } from './error'
-
-export class TidyProcessContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
-    constructor(public req: REQ, public onError: TidyErrorProcessor) {
-    }
-
-    get url(): string {
-        return this.req._origin.url!
-    }
-
-    get httpVersion(): string {
-        return this.req._origin.httpVersion!
-    }
-
-    get method(): string {
-        return this.req._origin.method!
-    }
-
-    get headers(): REQ['headers'] {
-        return this.req.headers
-    }
-}
+import { TidyProcessContext } from './context'
 
 export type TidyNextProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>
-    = (input: TidyProcessContext<REQ>) => TidyProcessReturn<any>
+    = (ctx: TidyProcessContext<REQ>) => TidyProcessReturn<any>
 
 export type TidyProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType,
-    REQ2 extends TidyBaseRequestType = TidyBaseRequestType>
+    REQ2 extends TidyBaseRequestType = REQ>
     = (ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
 
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
@@ -40,7 +20,7 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
      * @param fn {TidyProcessor} processor
      * @returns this
      */
-    public use<REQ2 extends TidyBaseRequestType = TidyBaseRequestType>(processor: TidyProcessor<REQ, REQ2>): TidyServerApp<REQ2> {
+    public use<REQ2 extends TidyBaseRequestType = REQ>(processor: TidyProcessor<REQ, REQ2>): TidyServerApp<REQ2> {
         this._processors.push(processor)
         return this as any as TidyServerApp<REQ2>
     }

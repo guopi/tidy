@@ -60,3 +60,6 @@ export class ErrorResult extends TidyResult {
         }))
     }
 }
+
+export class HttpError extends Error {
+}

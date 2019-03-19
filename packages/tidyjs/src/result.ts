@@ -113,14 +113,13 @@ export class TextResult extends TidyResult {
     }
 }
 
-export type TidyProcessReturnEntity<RESP extends TidyBaseResponseType = TidyBaseResponseType> =
-    TidyResponseBody<RESP>
-    | JsonResult<RESP>
-    | TidyResult
-    | undefined
+export type TidyProcessReturnEntity<RESP extends TidyBaseResponseType = TidyBaseResponseType>
+    = TidyResponseBody<RESP> | JsonResult<RESP> | TidyResult | undefined
 
-export type TidyProcessReturn<RESP extends TidyBaseResponseType = TidyBaseResponseType> =
-    TidyProcessReturnEntity<RESP>
-    | Promise<TidyProcessReturnEntity<RESP>>
+export type TidyProcessReturnPromise<RESP extends TidyBaseResponseType>
+    = Promise<TidyProcessReturnEntity<RESP>>
+
+export type TidyProcessReturn<RESP extends TidyBaseResponseType = TidyBaseResponseType>
+    = TidyProcessReturnEntity<RESP> | TidyProcessReturnPromise<RESP>
 
 export type TidyErrorProcessor = (err: any) => TidyProcessReturn<any>

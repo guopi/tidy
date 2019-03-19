@@ -12,8 +12,7 @@
     },
     "scripts": {
         "build": "tsc",
-        "get-start": "ts-node --files ./src/get-start.ts",
-        "cookie": "ts-node --files ./src/cookie.ts"
+        "run-ts": "ts-node --files "
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
@@ -23,6 +22,7 @@
         "tidyjs": "^1.0.6"
     },
     "devDependencies": {
+        "@types/koa": "^2.0.48",
         "ts-node": "^8.0.3",
         "typescript": "^3.3.3333"
     }

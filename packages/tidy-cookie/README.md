@@ -1,11 +1,14 @@
 # `tidy-cookie`
 
-> TODO: description
+> tidy processor to parse cookies
 
 ## Usage
 
+```typescript
+import { cookieParser } from 'tidy-cookie'
+import { TidyServerApp } from 'tidyjs'
+new TidyServerApp()
+    .use(cookieParser())
+    .listen(3000)
 ```
-const tidyCookie = require('tidy-cookie');
 
-// TODO: DEMONSTRATE API
-```
