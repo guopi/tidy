@@ -23,11 +23,11 @@
         "prepublishOnly": "rollup -c"
     },
     "dependencies": {
-        "cookie-parser": "^1.4.4",
+        "cookie": "^0.3.1",
         "tidyjs": "^1.0.6"
     },
     "devDependencies": {
-        "@types/cookie-parser": "^1.4.1",
+        "@types/cookie": "^0.3.2",
         "@types/express": "^4.16.1",
         "rollup": "^1.6.0",
         "rollup-plugin-dts": "^0.13.0",

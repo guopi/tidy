@@ -1,18 +1,19 @@
-import cookieParser from 'cookie-parser'
-import { _TidyUnderlingApp, _TidyUnderlingRequest, TidyApiInput, TidyApiType, TidyPlugin } from 'tidyjs'
+import * as cookie from 'cookie'
+import { TidyBaseRequestType, TidyNextProcessor, TidyProcessContext, TidyProcessor, TidyProcessReturn } from 'tidyjs'
 
-interface TidyApiTypeWithCookies extends TidyApiType {
+type WithCookies<T> = T & {
     cookies?: _TidyCookies
 }
 
-export function cookiePlugin(): TidyPlugin {
-    return {
-        onPlug(app: _TidyUnderlingApp) {
-            app.use(cookieParser())
-        },
-        onFilter(req: _TidyUnderlingRequest, input: TidyApiInput<TidyApiType>) {
-            (input as TidyApiTypeWithCookies).cookies = req.cookies
-            return undefined
+export function cookieProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: cookie.CookieParseOptions): TidyProcessor<REQ, WithCookies<REQ>> {
+    return function parseCookie(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<WithCookies<REQ>>): TidyProcessReturn<any> {
+        const req = (ctx.req as WithCookies<REQ>)
+        if (!req.cookies) {
+            const cookieHeader = req.headers && req.headers.cookie
+            if (cookieHeader)
+                req.cookies = cookie.parse(cookieHeader, options)
         }
+
+        return next(ctx as TidyProcessContext<WithCookies<REQ>>)
     }
 }

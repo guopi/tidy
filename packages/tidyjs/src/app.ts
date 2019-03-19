@@ -26,11 +26,11 @@ export class TidyProcessContext<REQ extends TidyBaseRequestType = TidyBaseReques
 }
 
 export type TidyNextProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>
-    = (input: REQ) => TidyProcessReturn<any>
+    = (input: TidyProcessContext<REQ>) => TidyProcessReturn<any>
 
 export type TidyProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType,
     REQ2 extends TidyBaseRequestType = TidyBaseRequestType>
-    = (ctx: TidyProcessContext<REQ>, next?: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
+    = (ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
 
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     private _processors: TidyProcessor<any, any>[] = []
@@ -103,7 +103,7 @@ function _defaultProcessor(): HeadResult {
 }
 
 function _compose(array: TidyProcessor<any, any>[]): TidyProcessor {
-    return function (context: TidyProcessContext, next?: TidyNextProcessor<any>): TidyProcessReturn<any> {
+    return function (context: TidyProcessContext, next: TidyNextProcessor<any>): TidyProcessReturn<any> {
         // last called #
         let lastIndex = -1
 
@@ -117,10 +117,8 @@ function _compose(array: TidyProcessor<any, any>[]): TidyProcessor {
             try {
                 if (i < array.length)
                     return array[i](ctx, dispatch.bind(null, i + 1))
-                else if (next)
-                    return next(ctx)
                 else
-                    return Promise.reject(new Error('no processors'))
+                    return next(ctx)
             } catch (err) {
                 return Promise.reject(err)
             }

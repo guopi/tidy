@@ -7,5 +7,5 @@ declare global {
 }
 
 interface _TidyCookies {
-    [k: string]: string | undefined
+    [k: string]: string
 }
