@@ -3,6 +3,7 @@
 // import nodeResolve from "rollup-plugin-node-resolve";
 
 import pkg from './package.json'
+import externalAdd from './rollup.external.modules.json'
 import typescript from 'rollup-plugin-typescript2';
 import {dts} from "rollup-plugin-dts";
 import {readdirSync, readFileSync} from "fs"
@@ -14,8 +15,15 @@ const dtsInTypes = readdirSync(typesDir)
 
 const external = [
     ...Object.keys(pkg.dependencies || {}),
-    'fs',
+    ...externalAdd,
 ]
+
+const tsconfigOverride = {
+    compilerOptions: {
+        module: "ESNext",
+    }
+}
+
 
 export default [
     {
@@ -23,6 +31,7 @@ export default [
         external,
         plugins: [
             typescript({
+                tsconfigOverride: tsconfigOverride,
                 cacheRoot: "./out/.rts2_cache"
             })
         ],
@@ -42,7 +51,8 @@ export default [
                 }
             },
             dts({
-                banner: false
+                banner: false,
+                compilerOptions: tsconfigOverride.compilerOptions
             })
         ],
         output: [{

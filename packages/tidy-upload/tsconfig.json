@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "ES6",
-        "module": "ESNext",
+        "module": "CommonJS",
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "outDir": "./out",
@@ -19,7 +19,8 @@
     },
     "include": [
         "./src/**/*.ts",
-        "./types/*.d.ts"
+        "./types/*.d.ts",
+        "./__tests__/*.ts"
     ],
     "exclude": [
         "out",

@@ -1,0 +1,38 @@
+{
+    "version": "1.0.7",
+    "name": "tidy-path-tree",
+    "author": "guopi <guopi.pro@gmail.com>",
+    "license": "MIT",
+    "description": "tidy file upload plugin",
+    "main": "./lib/index.cjs.js",
+    "module": "./lib/index.esm.js",
+    "types": "./lib/index.d.ts",
+    "homepage": "https://github.com/guopi/tidy#readme",
+    "files": [
+        "lib"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/guopi/tidy.git"
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "prepublishOnly": "rollup -c",
+        "test": "ts-node node_modules/tape/bin/tape __tests__/**/*.ts"
+    },
+    "bugs": {
+        "url": "https://github.com/guopi/tidy/issues"
+    },
+    "dependencies": {},
+    "devDependencies": {
+        "@types/tape": "^4.2.33",
+        "rollup": "^1.6.0",
+        "rollup-plugin-dts": "^0.13.0",
+        "rollup-plugin-typescript2": "^0.19.3",
+        "tape": "^4.10.1",
+        "ts-jest": "^24.0.0",
+        "ts-node": "^8.0.3",
+        "tslib": "^1.9.3",
+        "typescript": "^3.3.3333"
+    }
+}
