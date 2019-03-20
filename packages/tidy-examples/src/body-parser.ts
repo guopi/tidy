@@ -3,9 +3,8 @@ import { JsonResult, tidyBodyParser, TidyServerApp } from 'tidyjs'
 new TidyServerApp()
     .use(tidyBodyParser())
     .use(ctx => {
-        const { _origin, ...req } = ctx.req
         return new JsonResult<any>({
-            req: req
+            req: ctx.req
         })
     })
     .listen(3000)

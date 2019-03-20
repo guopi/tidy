@@ -38,9 +38,8 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
         const fn = _compose(this._processors)
 
         const server = http.createServer((req: http.IncomingMessage, resp: http.ServerResponse) => {
-            const ctx = new TidyProcessContext(
+            const ctx = new TidyProcessContext(req,
                 {
-                    _origin: req,
                     headers: req.headers
                 }, defaultErrorProcessor) as TidyProcessContext<REQ>
             this._process(ctx, resp, fn)

@@ -5,7 +5,7 @@ import * as fs from 'fs'
 new TidyServerApp()
     .use(tidyUploadProcessor())
     .use(async ctx => {
-        const { _origin, ...req } = ctx.req
+        const req = ctx.req
         const path1 = (req.files!.file1! as any).path!
         const file1Text = await new Promise((resolve, reject) => {
             fs.readFile(path1, 'utf-8', (err, data) => {

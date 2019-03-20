@@ -28,7 +28,7 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
         let files: _TidyUploadFiles | undefined
         if (req.files === undefined && !req._disableFileParser) {
             if (ctx.method.toUpperCase() === 'POST' && ctx.is('multipart/*')) {
-                const parsed = await _parseForm(req._origin, opts)
+                const parsed = await _parseForm(ctx._originReq, opts)
                 req.files = files = parsed.files
                 req.body = parsed.body
             }
@@ -36,9 +36,14 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
 
         const deletable = _deletableFilePaths(files)
         if (deletable) {
-            const ret = await Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
-            _deleteFiles(deletable)
-            return ret
+            try {
+                return await Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
+            } finally {
+                _deleteFiles(deletable)
+                    .catch(err => {
+                        //todo log errors
+                    })
+            }
         } else {
             return next(ctx as TidyProcessContext<WithFiles<REQ>>)
         }

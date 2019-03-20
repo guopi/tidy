@@ -14,7 +14,7 @@ const _defaultOpts = {
 export function tidyQueryStringParser<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: QueryStringParserOptions) {
     const opts = options ? { ..._defaultOpts, ...options } : _defaultOpts
     return async function queryStringParser(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ>): TidyProcessReturnPromise<any> {
-        if (ctx.req.query === undefined && !ctx.req._disableQueryParser) {
+        if (ctx.req.query === undefined && !ctx.disabled(tidyQueryStringParser.DISABLE_KEY)) {
             const url = ctx.url
             let query: TidyBaseRequestType['query']
             if (url !== undefined) {
@@ -29,3 +29,5 @@ export function tidyQueryStringParser<REQ extends TidyBaseRequestType = TidyBase
         return next(ctx)
     }
 }
+
+tidyQueryStringParser.DISABLE_KEY = 'parseQuery'
