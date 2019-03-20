@@ -3,11 +3,7 @@ export interface PathTreeOptions {
     regexCacheSize?: number
 }
 
-export interface EntryData {
-    path: string
-}
-
-export interface Params {
+export interface PathParams {
     [key: string]: string
 }
 

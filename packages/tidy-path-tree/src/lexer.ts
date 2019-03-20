@@ -1,19 +1,18 @@
 import { ParseError } from './error'
 
 const reIgnoredRef = /\((\?\!|\?\:|\?\=)/g
-const DEFAULT_CAPTURE_PATTERN = '\\w+'
+const DEFAULT_PARAM_PATTERN = '[.\\w]+'     // [.A-Za-z0-9_]+
 
-interface Token {
-    type?: 'pattern'
-    name?: string
-    retain: number
-    value: string
-    optional?: boolean
+export interface Token {
+    name?: string       // undefined means anonymous
+    reg: string         // regex text of Token
+    groups: number      // count of parentheses
+    opt?: boolean       // optional
 }
 
 export class Segment {
     pattern?: boolean
-    raw?: string
+    raw?: string        // raw pattern of whole Segment (if pattern===true)
     tokens: (Token | string)[] = []
 
     addToken(tk: Token) {
@@ -22,7 +21,17 @@ export class Segment {
     }
 
     addText(text: string) {
-        this.tokens.push(text)
+        if (!this.pattern && this.tokens.length === 1 && typeof this.tokens[0] === 'string') {
+            this.tokens[0] += text
+        } else {
+            this.tokens.push(text)
+        }
+    }
+
+    joinedStatic(): string {
+        return this.tokens.length === 1
+            ? this.tokens[0] as string
+            : this.tokens.join('')
     }
 }
 
@@ -50,7 +59,7 @@ export class Lexer {
 
         let preSlashIndex = this._index
         let char: string
-        while ((char = input[this._index]) && this._index < length) {
+        while (this._index < length && (char = input[this._index])) {
             switch (char) {
                 case ':':
                     currentSeg.addToken(this._scanParam())
@@ -81,6 +90,7 @@ export class Lexer {
     private _readOther(): string {
         const input = this._input
         const start = this._index
+        const length = input.length
         let pos = start
 
         let char = input[pos]
@@ -88,7 +98,10 @@ export class Lexer {
             if (char === '?' || char === '+' || char === '*') {
                 throw new ParseError('unsupported token ' + char)
             }
-            char = input[++pos]
+            if (++pos >= length)
+                break
+
+            char = input[pos]
         }
 
         if (pos <= start)
@@ -112,11 +125,11 @@ export class Lexer {
             capture = this._scanCapture()
         } else {
             capture = {
-                value: DEFAULT_CAPTURE_PATTERN,
-                retain: 1
+                reg: DEFAULT_PARAM_PATTERN,
+                groups: 1
             }
             if (this._eat('?')) {
-                capture.optional = true
+                capture.opt = true
             }
         }
 
@@ -137,7 +150,7 @@ export class Lexer {
             pos++
         }
 
-        if (pos <= this._index)
+        if (pos <= start)
             throw Error('readAlpha failed')
 
         this._index = pos
@@ -178,15 +191,14 @@ export class Lexer {
         }
 
         const token: Token = {
-            type: 'pattern',
-            retain: subCapture - ignored + 1,
-            value
+            groups: subCapture - ignored + 1,
+            reg: value
         }
         this._index = pos
 
         this._match(')')
         if (this._eat('?')) {
-            token.optional = true
+            token.opt = true
         }
 
         return token

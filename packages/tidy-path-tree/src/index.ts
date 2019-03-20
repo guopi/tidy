@@ -1,6 +1,6 @@
-import { EntryData, Params, PathTreeOptions } from './types'
+import { PathParams, PathTreeOptions } from './types'
 import { Lexer } from './lexer'
-import { DynamicEntry, EntryAddContext } from './entry'
+import { AddContext, Layer } from './layer'
 import { PathError } from './error'
 import { SimpleCache } from './cache'
 
@@ -11,22 +11,21 @@ interface EntryOptions {
     prefix?: boolean    // default false
 }
 
-const _RE_WithDynamic = /[:(]/
-const _RE_Clean = /^\/+|\/+$/
+const _RE_HasDynamic = /[:(]/
 
-export interface FindResult<DATA extends EntryData> {
-    params: Params
+export interface FindResult<DATA> {
+    params: PathParams
     data: DATA
 }
 
-export class PathTree<DATA extends EntryData> {
+export class PathTree<DATA> {
     private _opts: PathTreeOptions
-    private _staticEntries: {
+    private _statics: {
         [path: string]: DATA
     } = {}
-    private _dynamicEntry = new DynamicEntry<DATA>()
+    private _root = new Layer<DATA>()
     private readonly _regexCache: SimpleCache<string, RegExp>
-    private _delimiter: string
+    private readonly _delimiter: string
 
     constructor(opts?: PathTreeOptions) {
         this._opts = opts || {}
@@ -34,25 +33,22 @@ export class PathTree<DATA extends EntryData> {
         this._delimiter = this._opts.delimiter || '/'
     }
 
-    cleanup() {
+    compact() {
         this._regexCache.clear()
     }
 
-    add(data: DATA, opts?: EntryOptions): void {
-        const path = data.path
+    add(path: string, data: DATA, opts?: EntryOptions): void {
         const prefix = opts && opts.prefix
-        const strict = opts && opts.strict
-
-        if (!prefix && !(_RE_WithDynamic.test(path))) {
-            if (this._staticEntries[path] !== undefined)
+        if (!prefix && !(_RE_HasDynamic.test(path))) {
+            if (this._statics[path] !== undefined)
                 throw new Error(`path ${path} is already added`)
-            this._staticEntries[path] = data
+            this._statics[path] = data
             return
         }
 
-        let curEntry = this._dynamicEntry
-        let context: EntryAddContext = {
-            unnamedCapture: 0,
+        let curEntry = this._root
+        let context: AddContext = {
+            unnamedGroups: 0,
             regexCache: this._regexCache
         }
 
@@ -61,7 +57,7 @@ export class PathTree<DATA extends EntryData> {
             if (seg.pattern) {
                 curEntry = curEntry.addPattern(seg, context)
             } else {
-                curEntry = curEntry.addStatic(seg.tokens.join())
+                curEntry = curEntry.addStatic(seg.joinedStatic())
             }
         }
 
@@ -69,15 +65,18 @@ export class PathTree<DATA extends EntryData> {
             throw new PathError(`path ${path} is already added`)
 
         curEntry.touched = true
+        curEntry.path = path
         curEntry.data = data
-        curEntry.prefix = prefix
-        curEntry.strict = strict !== false
+        if (prefix)
+            curEntry.prefix = true
+        if (opts && opts.strict === false)
+            curEntry.strict = false
     }
 
     find(path: string): FindResult<DATA> | undefined {
-        const params: Params = {}
+        const params: PathParams = {}
 
-        const found = this._staticEntries[path]
+        const found = this._statics[path]
         if (found) {
             return {
                 params,
@@ -85,18 +84,8 @@ export class PathTree<DATA extends EntryData> {
             }
         }
 
-        const delimiter = this._delimiter
-
-        const lastDelimiter = path.charAt(path.length - 1) === delimiter
-        const pathes = path.replace(_RE_Clean, '').split(delimiter)
-
-        const route = this._dynamicEntry.find(0, {
-            length: pathes.length,
-            pathes,
-            params: params,
-            lastDelimiter
-        })
-
+        const layers = (path[0] === this._delimiter ? path.substring(1) : path).split(this._delimiter)
+        const route = this._root.find(0, { layers, params })
         if (!route)
             return undefined
 

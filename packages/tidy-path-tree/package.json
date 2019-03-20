@@ -18,7 +18,8 @@
     "scripts": {
         "build": "rollup -c",
         "prepublishOnly": "rollup -c",
-        "test": "ts-node node_modules/tape/bin/tape __tests__/**/*.ts"
+        "test": "ts-node node_modules/tape/bin/tape __tests__/**/*.ts",
+        "test1": "ts-node node_modules/tape/bin/tape"
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"

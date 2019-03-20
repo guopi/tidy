@@ -1,29 +1,39 @@
-import { EntryData, PathTree } from '../src'
+import { PathTree } from '../src'
 import * as test from 'tape'
 
-interface TestData extends EntryData {
+interface TestData {
     t?: string
 }
 
 test('find', (t) => {
     let tree = new PathTree<TestData>()
-    tree.add({
-        path: '/a/b/:c',
+    tree.add('/a/b/:c', {
         t: 'abc'
     })
-    tree.add({
-        path: '/x/y/z',
+    tree.add('/x/y/z', {
         t: 'xyz'
     })
-    tree.add({
-        path: '/1/2/:name--:age',
-    })
+    tree.add('/1/2/:name--:age', {})
+    tree.add('/test/([a-z]+)/:index([0-9]+)?', { t: 'withOpt' })
+
+    // console.log('tree: ', JSON.stringify(tree, null, 4))
+
     t.deepEquals(tree.find('/a/b/test1')!.params, {
         c: 'test1'
     })
     t.deepEquals(tree.find('/1/2/tidy--987')!.params, {
         name: 'tidy',
         age: '987',
+    })
+    t.deepEquals(tree.find('/test/abc/123')!.params, {
+        index: '123',
+    })
+
+    t.deepEquals(tree.find('/test/abc/'), {
+        params: {
+            index: undefined,
+        },
+        data: { t: 'withOpt' }
     })
 
     t.end()
