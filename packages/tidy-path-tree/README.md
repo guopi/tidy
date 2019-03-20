@@ -5,7 +5,7 @@
 ## Usage
 
 ```
-const tidyUpload = require('tidy-upload');
+const pathTree = require('tidy-path-tree');
 
 // TODO: DEMONSTRATE API
 ```
