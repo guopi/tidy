@@ -10,11 +10,11 @@ import http from 'http'
 import * as formidable from 'formidable'
 import fs from 'fs'
 
-const coBusboy = require('co-busboy')
+export interface TidyUploadFiles extends _TidyUploadFiles {
+}
 
 export type WithFiles<T> = T & {
-    files?: _TidyUploadFiles
-    _disableFileParser?: boolean
+    files?: TidyUploadFiles
 }
 
 export interface UploadOptions {
@@ -25,8 +25,8 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
     const opts = options || {}
     return async function cookieParser(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<WithFiles<REQ>>): TidyProcessReturnPromise<any> {
         const req = (ctx.req as WithFiles<REQ>)
-        let files: _TidyUploadFiles | undefined
-        if (req.files === undefined && !req._disableFileParser) {
+        let files: TidyUploadFiles | undefined
+        if (req.files === undefined && !ctx.disabled(tidyUploadProcessor.DISABLE_KEY)) {
             if (ctx.method.toUpperCase() === 'POST' && ctx.is('multipart/*')) {
                 const parsed = await _parseForm(ctx._originReq, opts)
                 req.files = files = parsed.files
@@ -51,7 +51,9 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
     }
 }
 
-function _deletableFilePaths(files?: _TidyUploadFiles): string[] | undefined {
+tidyUploadProcessor.DISABLE_KEY = 'upload'
+
+function _deletableFilePaths(files?: TidyUploadFiles): string[] | undefined {
     if (!files)
         return undefined
 
@@ -93,13 +95,13 @@ async function _deleteFiles(paths: string[]): Promise<FileErrors> {
 }
 
 interface ParsedForm {
-    files: _TidyUploadFiles
+    files: TidyUploadFiles
     body: NamedDict
 }
 
 async function _parseForm(req: http.IncomingMessage, options: UploadOptions): Promise<ParsedForm> {
     return new Promise(function (resolve, reject) {
-        const files: _TidyUploadFiles = {}
+        const files: TidyUploadFiles = {}
         const body: NamedDict = {}
 
         const form = new (formidable.IncomingForm as any)(options as any) as formidable.IncomingForm
