@@ -1,5 +1,5 @@
 {
-    "version": "1.0.7",
+    "version": "1.0.8",
     "name": "tidy-path-tree",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -24,7 +24,6 @@
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
-    "dependencies": {},
     "devDependencies": {
         "@types/tape": "^4.2.33",
         "rollup": "^1.6.0",
