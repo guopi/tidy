@@ -2,7 +2,7 @@ import { Myna as m } from 'myna-parser'
 
 type Char = string
 
-type PathParser = (input: string) => any
+type PathParser = (input: string) => m.AstNode | null | undefined
 type GrammarDict = {
     [name: string]: PathParser
 }
@@ -68,11 +68,10 @@ class PathGrammar {
 
     BackslashChar = m.seq('\\', m.notChar('\r\n'))
 
-    StaticChar = m.choice(
-        m.notChar(this.Delimiter + '?:(\\'),
+    Text = m.choice(
+        m.notChar(this.Delimiter + '\r\n:(/\\'),
         this.BackslashChar
-    )
-    StaticText = this.StaticChar.oneOrMore.ast
+    ).oneOrMore.ast
 
     ReClassChar = m.choice(
         m.notChar(']\\'),
@@ -88,14 +87,14 @@ class PathGrammar {
     _ReGroup = m.delay(() => this.ReGroup)
 
     ReFirstChar = m.choice(
-        m.notChar('\r\f*\\/[()?'),
+        m.notChar('\r\n*\\/[()?'),
         this.BackslashChar,
         this.ReClass,
         this._ReGroup
     )
 
     ReChar = m.choice(
-        m.notChar('\r\f\\/[()'),
+        m.notChar('\r\n\\/[()'),
         this.BackslashChar,
         this.ReClass,
         this._ReGroup
@@ -119,16 +118,17 @@ class PathGrammar {
         this.ReGroup.opt
     ).ast
 
-    Layer = m.choice(
+    Seg = m.choice(
         this.Param,
-        this.StaticText,
+        this.Text,
         this.ReGroup
-    ).zeroOrMore.ast
-
-    Path = m.seq(
-        m.opt(this.Delimiter),
-        m.delimited(this.Layer, this.Delimiter)
     )
+
+    Layer = this.Seg.zeroOrMore.ast
+
+    Path = m.delimited(this.Layer, this.Delimiter)
 }
 
 export type PathGrammarType = keyof PathGrammar
+export type PathAstNode = m.AstNode
+export const DEFAULT_PARAM_PATTERN = '[.\\w]+'     // [.A-Za-z0-9_]+

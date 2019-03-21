@@ -1,6 +1,8 @@
+import { Cache } from './types'
+
 export type SimpleKey = string | number
 
-export class SimpleCache<K extends SimpleKey, V> {
+export class SimpleCache<K extends SimpleKey, V> implements Cache<K, V> {
     private _keys: K[] = []
     private _map: any = {}
     private readonly _limit: number
