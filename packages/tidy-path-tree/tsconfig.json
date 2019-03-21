@@ -15,9 +15,6 @@
         "emitDecoratorMetadata": true,
         "typeRoots": [
             "./types"
-        ],
-        "lib": [
-            "es6"
         ]
     },
     "include": [
