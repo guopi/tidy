@@ -11,7 +11,7 @@ export class Tree<DATA> {
         [path: string]: DATA
     } = {}
 
-    private _root = new PathNode()
+    private _root = new PathNode('')
     private readonly _regexCache: Cache<string, RegExp>
     private readonly _delimiter: string
 
@@ -49,7 +49,7 @@ export class Tree<DATA> {
             path,
             data,
             regexCache: this._regexCache,
-            groupIndex: 1
+            groupIndex: -1000
         }, 0)
     }
 }

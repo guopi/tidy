@@ -2,10 +2,12 @@ import { createParser } from '../src/grammar'
 import { Myna as m } from 'myna-parser'
 import { Tree } from '../src/tree'
 
-let path: string
-path = ':p0?/:a?([0-9]+)/:b-:c/(a-([0-9]+)?)/:d'
 
 function testParser() {
+    let path: string
+    path = ':p0?/:a?([0-9]+)/:b-:c/(a-([0-9]+)?)/:d'
+    path = ':b(a-([0-9]+)-:x(a|b))'
+
     const parser = createParser('/')
 
     const r = parser(path)
@@ -28,14 +30,17 @@ function testTree() {
         tree.add(path, 'data' + n++)
     }
 
-    // addPath('/:a/:b(a-([0-9]+)-(a|b))/:c')
+    addPath(':b(a-([0-9]+)-(am|pm)-:x(a|b))')
+    // addPath('/:a/:b(a-([0-9]+)-:x(a|b))/:c')
     // addPath('/a/b/:c')
     // addPath(':p0?/:a?([0-9]+)/:b-:c/(a-([0-9]+)?)/:d')
 
     logJson('tree', (tree as any))
 }
 
+console.log('---start---')
 testTree()
+// testParser()
 
 function logJson(name: string, obj: any) {
     console.log(name + ' = ', JSON.stringify(obj, null, 4))

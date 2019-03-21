@@ -12,12 +12,18 @@ export interface AddContext {
     layers: PathAstNode[]
 }
 
-type ParamNameAndIndexes = [string, number][]
+type ParamNameAndIndex = [string, number]
+type ParamNameAndIndexes = ParamNameAndIndex[]
 
 export class PathNode {
-    reObj?: RegExp      // not nil means dyna
+    /**
+     * @param raw raw text of path
+     */
+    constructor(public raw: string) {
+    }
+
+    reObj?: RegExp              // not nil means dyna
     reStr?: string
-    raw?: string
     params?: ParamNameAndIndexes
     canEmpty?: boolean
     globstar?: boolean
@@ -31,111 +37,100 @@ export class PathNode {
         return !!this._path
     }
 
-    add(ctx: AddContext, index: number) {
+    add(ctx: AddContext, index: number): void {
         const layer = ctx.layers[index]
         if (!layer)
             throw new PathError(`path ${ctx.path} is invalid format: layer ${index} is not exists`)
 
-        const node = new PathNode()
+        const newSub = new PathNode(nodeText(layer))
         const lastLayer = index >= ctx.layers.length - 1
         if (lastLayer) {
             // last layer
-            node._data = ctx.data
-            node._path = ctx.path
+            newSub._data = ctx.data
+            newSub._path = ctx.path
         }
-        let nextNode = node
 
-        if (layer.end > layer.start) {
-            node.raw = nodeText(layer)
-            const segs = layer.children
-            if (segs) {
-                if (hasDynaSeg(layer.children)) {
-                    let reStr = '^'
-                    for (const seg of segs) {
-                        if (isType(seg, 'Text')) {
-                            reStr += escapeTextToRegexStr(nodeText(seg))
-                        } else if (isType(seg, 'Param')) {
-                            const paramGroupIndex = ctx.groupIndex
-
-                            const childCount = nodeChildCount(seg)
-                            let paramNameEnd = seg.end
-                            if (childCount > 0) {
-                                if (childCount !== 1)
-                                    throw new PathError(`Param Seg ${nodeText(seg)} is invalid format, it has ${childCount} children node`)
-                                const firstSegChild = seg.children[0]
-                                if (!isType(firstSegChild, 'ReGroup'))
-                                    throw new PathError(`Param Seg ${nodeText(seg)} has invalid ${nodeType(firstSegChild)} children node`)
-
-                                paramNameEnd = firstSegChild.start
-                                reStr += nodeText(firstSegChild)
-                                countReGroups(ctx, firstSegChild)
-                            } else {
-                                ctx.groupIndex++
-                                reStr += `(${DEFAULT_PARAM_PATTERN})`
-                            }
-                            const opt = seg.input.charAt(paramNameEnd - 1) === '?'
-                            if (opt) {
-                                paramNameEnd--
-                                reStr += '?'
-                            }
-
-                            const paramName = seg.input.substring(seg.start + 1, paramNameEnd)
-                            if (!node.params)
-                                node.params = []
-                            node.params.push([paramName, paramGroupIndex])
-
-                        } else if (isType(seg, 'ReGroup')) {
-                            reStr += nodeText(seg)
-                            countReGroups(ctx, seg)
-                        }
-                    }
-                    reStr += '$'
-
-                    const found = this._findSub(reStr)
-                    if (found) {
-                        nextNode = found
-                        if (!sameParams(found.params, found.params))
-                            throw Error('named Capture conflict ' + node.raw + ' -> ' + found.raw)
-
-                        if (lastLayer && found.mounted()) {
-                            throw new PathError(`path ${ctx.path} is already added`)
-                        }
-                    } else {
-                        if (!this.subs) this.subs = []
-                        node.reStr = reStr
-                        node.reObj = ctx.regexCache.get(reStr) || ctx.regexCache.set(reStr, new RegExp(reStr))
-                        this.subs.push(node)
-                    }
-                } else {
-                    const text = node.raw
-                    if (text === '**') {
-                        if (!lastLayer)
-                            throw Error('globstar ** must at end of the path, path=' + ctx.path)
-
-                        node.globstar = true
-                    }
-                    if (!this._statics) {
-                        this._statics = { [text]: node }
-                    } else {
-                        const found = this._statics[text]
-                        if (found) {
-                            nextNode = found
-                            if (lastLayer && found.mounted()) {
-                                throw new PathError(`path ${ctx.path} is already added`)
-                            }
-                        } else {
-                            this._statics[text] = node
-                        }
-                    }
-                }
-            }
-        }
+        const segs = layer.children
+        const subFoundOrCreate = (segs && hasDynaSeg(segs))
+            ? this._addDynaSubNode(ctx, segs, lastLayer, newSub)
+            : this._addStaticSubNode(ctx, lastLayer, newSub)
 
         if (!lastLayer)
-            nextNode.add(ctx, index + 1)
+            subFoundOrCreate.add(ctx, index + 1)
     }
 
-    private _findSub(reStr: string): PathNode | undefined {
+    private _addDynaSubNode(ctx: AddContext, segs: PathAstNode[], lastLayer: boolean, newSub: PathNode): PathNode {
+        ctx.groupIndex = 1
+        let reStr = '^'
+        let ret: PathNode = newSub
+        for (const seg of segs) {
+            switch (nodeType(seg)) {
+                case 'Text':
+                    reStr += escapeTextToRegexStr(nodeText(seg))
+                    break
+                case 'Param':
+                    reStr += createRegexStrFromParam(ctx, seg, newSub)
+                    break
+                case 'ReGroup':
+                    reStr += createRegexStrFromReGroup(ctx, seg, newSub)
+                    break
+                default:
+                    reStr += nodeText(seg)
+            }
+        }
+        reStr += '$'
+
+        const found = this._findSubFromReStr(reStr)
+        if (found) {
+            ret = found
+            if (!sameParams(found.params, found.params))
+                throw Error(`named Capture conflict ${newSub.raw} -> ${found.raw}`)
+
+            if (lastLayer && found.mounted()) {
+                throw new PathError(`path ${ctx.path} is already added`)
+            }
+        } else {
+            newSub.reStr = reStr
+            newSub.reObj = ctx.regexCache.get(reStr) || ctx.regexCache.set(reStr, new RegExp(reStr))
+            this._addSub(newSub)
+        }
+
+        return ret
+    }
+
+    private _addStaticSubNode(ctx: AddContext, lastLayer: boolean, newSub: PathNode) {
+        const text = newSub.raw
+        let ret = newSub
+        if (text === '**') {
+            if (!lastLayer)
+                throw Error('globstar ** must at end of the path, path=' + ctx.path)
+
+            newSub.globstar = true
+        }
+
+        if (!this._statics) {
+            this._statics = { [text]: newSub }
+        } else {
+            const found = this._statics[text]
+            if (found) {
+                ret = found
+                if (lastLayer && found.mounted()) {
+                    throw new PathError(`path ${ctx.path} is already added`)
+                }
+            } else {
+                this._statics[text] = newSub
+            }
+        }
+        return ret
+    }
+
+    private _addSub(sub: PathNode): void {
+        if (!this.subs)
+            this.subs = []
+        this.subs.push(sub)
+    }
+
+    private _findSubFromReStr(reStr: string): PathNode | undefined {
         if (this.subs) {
             for (const p of this.subs) {
                 if (p.reStr === reStr)
@@ -143,24 +138,85 @@ export class PathNode {
             }
         }
     }
+
+    addParam(name: string, groupIndex: number) {
+        const found = this.findParam(name)
+        if (found !== undefined)
+            return new PathError(`path param name duplicated: ${name} at #${found[1]}`)
+
+        if (!this.params)
+            this.params = []
+        this.params.push([name, groupIndex])
+    }
+
+    findParam(name: string): ParamNameAndIndex | undefined {
+        if (this.params) {
+            for (const p of this.params) {
+                if (p[0] === name)
+                    return p
+            }
+        }
+        return undefined
+    }
 }
 
-function countReGroups(ctx: AddContext, node: PathAstNode): void {
-    if (nodeType(node) === 'ReGroup') {
+function createRegexStrFromParam(ctx: AddContext, seg: PathAstNode, paramsTo: PathNode): string {
+    let reStr: string
+    const paramGroupIndex = ctx.groupIndex
+
+    const childCount = nodeChildCount(seg)
+    let paramNameEnd = seg.end
+    if (childCount > 0) {
+        if (childCount !== 1) {
+            throw new PathError(`Param Seg ${nodeText(seg)} is invalid format, it has ${childCount} children node`)
+        }
+        const firstChild = seg.children[0]
+        if (!firstChild || !isType(firstChild, 'ReGroup'))
+            throw new PathError(`Param Seg ${nodeText(seg)} has invalid ${nodeType(firstChild)} children node`)
+
+        paramNameEnd = firstChild.start
+        reStr = createRegexStrFromReGroup(ctx, firstChild, paramsTo)
+    } else {
         ctx.groupIndex++
-        if (node.children) {
-            for (const sub of node.children)
-                countReGroups(ctx, sub)
+        reStr = `(${DEFAULT_PARAM_PATTERN})`
+    }
+    const opt = seg.input.charAt(paramNameEnd - 1) === '?'
+    if (opt) {
+        paramNameEnd--
+        reStr += '?'
+    }
+
+    const paramName = seg.input.substring(seg.start + 1, paramNameEnd)
+    paramsTo.addParam(paramName, paramGroupIndex)
+
+    return reStr
+}
+
+function createRegexStrFromReGroup(ctx: AddContext, seg: PathAstNode, paramsTo: PathNode): string {
+    let reStr = '('
+    ctx.groupIndex++
+
+    if (seg.children) {
+        for (const sub of seg.children) {
+            switch (nodeType(sub)) {
+                case 'ReGroup':
+                    reStr += createRegexStrFromReGroup(ctx, sub, paramsTo)
+                    break
+                case 'Param':
+                    reStr += createRegexStrFromParam(ctx, sub, paramsTo)
+                    break
+                default:
+                    reStr += nodeText(sub)
+            }
         }
     }
+
+    reStr += ')'
+    return reStr
 }
 
 function nodeChildCount(node: PathAstNode): number {
     return node.children ? node.children.length : 0
-}
-
-function nodeLastChar(node: PathAstNode): Char | undefined {
-    return node.input.charAt(node.end - 1)
 }
 
 function nodeText(node: PathAstNode): string {

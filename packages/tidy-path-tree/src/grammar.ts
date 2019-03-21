@@ -86,36 +86,40 @@ class PathGrammar {
 
     _ReGroup = m.delay(() => this.ReGroup)
 
-    ReFirstChar = m.choice(
-        m.notChar('\r\n*\\/[()?'),
+    Param = m.seq(
+        ':',
+        m.identifier,
+        m.opt(this.QuestionMark),
+        this._ReGroup.opt
+    ).ast
+
+    ReTextFirstChar = m.choice(
+        m.notChar('\r\n\\/[():*?'),
         this.BackslashChar,
-        this.ReClass,
-        this._ReGroup
+        this.ReClass
     )
 
-    ReChar = m.choice(
-        m.notChar('\r\n\\/[()'),
+    ReTextChar = m.choice(
+        m.notChar('\r\n\\/[():'),
         this.BackslashChar,
-        this.ReClass,
-        this._ReGroup
+        this.ReClass
     )
 
-    ReBody = m.seq(
-        this.ReFirstChar,
-        this.ReChar.zeroOrMore
-    )
+    ReText = m.seq(
+        this.ReTextFirstChar,
+        this.ReTextChar.zeroOrMore
+    ).ast
+
+    ReBody = m.choice(
+        this.ReText,
+        this._ReGroup,
+        this.Param,
+    ).oneOrMore
 
     ReGroup = m.seq(
         this.ParenthesesOpen,
         this.ReBody,
         this.ParenthesesClose
-    ).ast
-
-    Param = m.seq(
-        ':',
-        m.identifier,
-        m.opt(this.QuestionMark),
-        this.ReGroup.opt
     ).ast
 
     Seg = m.choice(
