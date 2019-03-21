@@ -1,7 +1,6 @@
 import { createParser } from '../src/grammar'
 import { Myna as m } from 'myna-parser'
-import { Tree } from '../src/tree'
-
+import { PathTree } from '../src/tree'
 
 function testParser() {
     let path: string
@@ -22,7 +21,7 @@ result =`)
 }
 
 function testTree() {
-    let tree = new Tree()
+    let tree = new PathTree()
     let n = 1
 
     function addPath(path: string) {
@@ -38,13 +37,11 @@ function testTree() {
     logJson('tree', (tree as any))
 }
 
-console.log('---start---')
-testTree()
+// testTree()
 // testParser()
 
 function logJson(name: string, obj: any) {
     console.log(name + ' = ', JSON.stringify(obj, null, 4))
-
 }
 
 function indent(level: number): string {

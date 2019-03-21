@@ -1,9 +1,3 @@
-export interface PathTreeOptions {
-    delimiter?: string
-    regexCacheSize?: number
-    regexCache?: Cache<string, RegExp>
-}
-
 export interface PathParams {
     [key: string]: string
 }

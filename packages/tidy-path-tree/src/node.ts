@@ -1,4 +1,4 @@
-import { Cache } from './types'
+import { Cache, PathParams } from './types'
 import { DEFAULT_PARAM_PATTERN, PathAstNode, PathGrammarType } from './grammar'
 import { PathError } from './error'
 
@@ -15,6 +15,11 @@ export interface AddContext {
 type ParamNameAndIndex = [string, number]
 type ParamNameAndIndexes = ParamNameAndIndex[]
 
+export interface FindContext {
+    readonly layers: ReadonlyArray<string>
+    readonly params: PathParams
+}
+
 export class PathNode {
     /**
      * @param raw raw text of path
@@ -25,8 +30,6 @@ export class PathNode {
     reObj?: RegExp              // not nil means dyna
     reStr?: string
     params?: ParamNameAndIndexes
-    canEmpty?: boolean
-    globstar?: boolean
 
     subs?: PathNode[]
     _statics?: { [text: string]: PathNode }
@@ -44,19 +47,17 @@ export class PathNode {
 
         const newSub = new PathNode(nodeText(layer))
         const lastLayer = index >= ctx.layers.length - 1
-        if (lastLayer) {
-            // last layer
-            newSub._data = ctx.data
-            newSub._path = ctx.path
-        }
 
         const segs = layer.children
         const subFoundOrCreate = (segs && hasDynaSeg(segs))
             ? this._addDynaSubNode(ctx, segs, lastLayer, newSub)
             : this._addStaticSubNode(ctx, lastLayer, newSub)
 
-        if (!lastLayer)
+        if (lastLayer) {
+            newSub.mount(ctx)
+        } else {
             subFoundOrCreate.add(ctx, index + 1)
+        }
     }
 
     private _addDynaSubNode(ctx: AddContext, segs: PathAstNode[], lastLayer: boolean, newSub: PathNode): PathNode {
@@ -101,12 +102,6 @@ export class PathNode {
     private _addStaticSubNode(ctx: AddContext, lastLayer: boolean, newSub: PathNode) {
         const text = newSub.raw
         let ret = newSub
-        if (text === '**') {
-            if (!lastLayer)
-                throw Error('globstar ** must at end of the path, path=' + ctx.path)
-
-            newSub.globstar = true
-        }
 
         if (!this._statics) {
             this._statics = { [text]: newSub }
@@ -121,6 +116,7 @@ export class PathNode {
                 this._statics[text] = newSub
             }
         }
+
         return ret
     }
 
@@ -139,8 +135,8 @@ export class PathNode {
         }
     }
 
-    addParam(name: string, groupIndex: number) {
-        const found = this.findParam(name)
+    _addParam(name: string, groupIndex: number) {
+        const found = this._findParam(name)
         if (found !== undefined)
             return new PathError(`path param name duplicated: ${name} at #${found[1]}`)
 
@@ -149,7 +145,7 @@ export class PathNode {
         this.params.push([name, groupIndex])
     }
 
-    findParam(name: string): ParamNameAndIndex | undefined {
+    private _findParam(name: string): ParamNameAndIndex | undefined {
         if (this.params) {
             for (const p of this.params) {
                 if (p[0] === name)
@@ -157,6 +153,68 @@ export class PathNode {
             }
         }
         return undefined
+    }
+
+    private _findStatic(index: number, ctx: FindContext): PathNode | undefined {
+        const layer = ctx.layers[index]
+
+        const found = this._statics && this._statics[layer]
+        if (found) {
+            if (index >= ctx.layers.length - 1) {
+                // last layer
+                return found.mounted() ? found : undefined
+            }
+
+            return found.find(index + 1, ctx)
+        }
+    }
+
+    find(index: number, ctx: FindContext): PathNode | undefined {
+        const staticFound = this._findStatic(index, ctx)
+        if (staticFound !== undefined)
+            return staticFound
+
+        if (!this.subs || !this.subs.length)
+            return undefined
+
+        const layer = ctx.layers[index]
+        const isLast = index >= ctx.layers.length - 1
+
+        for (const sub of this.subs) {
+            if (!sub.reObj)
+                continue
+
+            const matched = sub.reObj.exec(layer)
+            if (matched) {
+                if (isLast) {
+                    if (!sub.mounted())
+                        return undefined
+
+                    sub._buildParams(matched, ctx.params)
+
+                    return sub
+                }
+
+                let nextFound = sub.find(index + 1, ctx)
+                if (nextFound) {
+                    sub._buildParams(matched, ctx.params)
+                }
+                return nextFound
+            }
+        }
+    }
+
+    private _buildParams(matched: RegExpExecArray, toParams: PathParams) {
+        if (this.params) {
+            for (const p of this.params!) {
+                toParams[p[0]] = matched[p[1]]
+            }
+        }
+    }
+
+    mount(ctx: AddContext) {
+        this._data = ctx.data
+        this._path = ctx.path
     }
 }
 
@@ -187,7 +245,7 @@ function createRegexStrFromParam(ctx: AddContext, seg: PathAstNode, paramsTo: Pa
     }
 
     const paramName = seg.input.substring(seg.start + 1, paramNameEnd)
-    paramsTo.addParam(paramName, paramGroupIndex)
+    paramsTo._addParam(paramName, paramGroupIndex)
 
     return reStr
 }
