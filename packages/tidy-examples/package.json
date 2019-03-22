@@ -1,6 +1,6 @@
 {
     "name": "tidy-examples",
-    "version": "1.0.10",
+    "version": "1.0.11",
     "private": true,
     "description": "examples of tidyjs",
     "author": "guopi <guopi.pro@gmail.com>",
@@ -19,7 +19,7 @@
     },
     "dependencies": {
         "tidy-cookie": "^1.0.9",
-        "tidy-router": "^1.0.3",
+        "tidy-router": "^1.0.4",
         "tidy-upload": "^1.0.12",
         "tidyjs": "^1.0.11"
     },
