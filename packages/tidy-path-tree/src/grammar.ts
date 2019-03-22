@@ -2,7 +2,7 @@ import { Myna as m } from 'myna-parser'
 
 type Char = string
 
-type PathParser = (input: string) => m.AstNode | null | undefined
+type PathParser = (input: string) => m.AstNode | null
 type GrammarDict = {
     [name: string]: PathParser
 }

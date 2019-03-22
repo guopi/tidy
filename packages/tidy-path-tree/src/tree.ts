@@ -1,7 +1,7 @@
 import { Cache, PathParams } from './types'
 import { SimpleCache } from './cache'
 import { PathNode } from './node'
-import { createParser } from './grammar'
+import { createParser, PathAstNode } from './grammar'
 import { PathError } from './error'
 
 const _RE_HasDynamic = /[:(*]/
@@ -15,6 +15,7 @@ export interface PathTreeOptions {
     delimiter?: string
     regexCacheSize?: number
     regexCache?: Cache<string, RegExp>
+    parseCache?: Cache<string, PathAstNode | null>
 }
 
 export class PathTree<DATA> {
@@ -23,16 +24,20 @@ export class PathTree<DATA> {
     } = {}
 
     private _root = new PathNode('')
-    private readonly _regexCache: Cache<string, RegExp>
     private readonly _delimiter: string
+    private readonly _regexCache: Cache<string, RegExp>
+    private readonly _parseCache?: Cache<string, PathAstNode | null>
 
     constructor(opts?: PathTreeOptions) {
         this._regexCache = opts && opts.regexCache || new SimpleCache(opts && opts.regexCacheSize)
         this._delimiter = opts && opts.delimiter || '/'
+        this._parseCache = opts && opts.parseCache
     }
 
     compact() {
         this._regexCache.clear()
+        const cache = this._parseCache
+        if (cache) cache.clear()
     }
 
     add(path: string, data: DATA): void {
@@ -50,9 +55,7 @@ export class PathTree<DATA> {
             return
         }
 
-        const ast = createParser(this._delimiter)(path)
-        if (!ast || ast.end === 0 || !ast.children || ast.children.length === 0)
-            throw new PathError(`path ${path} is invalid format`)
+        const ast = this._parse(path)
 
         this._root.add({
             layers: ast.children,
@@ -61,6 +64,23 @@ export class PathTree<DATA> {
             regexCache: this._regexCache,
             groupIndex: -1000
         }, 0)
+    }
+
+    private _parse(path: string): PathAstNode {
+        const cache = this._parseCache
+        let ast: PathAstNode | null | undefined = undefined
+        if (cache)
+            ast = cache.get(path)
+
+        if (ast === undefined) {
+            ast = createParser(this._delimiter)(path)
+            if (cache)
+                cache.set(path, ast)
+        }
+
+        if (!ast || ast.end === 0 || !ast.children || ast.children.length === 0)
+            throw new PathError(`path ${path} is invalid format`)
+        return ast
     }
 
     find(path: string): FindResult<DATA> | undefined {
