@@ -1,5 +1,5 @@
 {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "name": "tidy-dev-tools",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -15,8 +15,7 @@
         "type": "git",
         "url": "git+https://github.com/guopi/tidy.git"
     },
-    "scripts": {
-    },
+    "scripts": {},
     "dependencies": {
         "rollup": "^1.6.0",
         "rollup-plugin-dts": "^0.13.0",

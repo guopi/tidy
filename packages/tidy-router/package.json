@@ -1,0 +1,9 @@
+{
+  "name": "tidy-router",
+  "version": "1.0.1",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "tidy-dev-tools": "^1.0.1"
+  }
+}
