@@ -1,6 +1,6 @@
 {
     "name": "tidy-router",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "main": "./lib/index.cjs.js",
     "license": "MIT",
     "author": "guopi <guopi.pro@gmail.com>",
@@ -20,6 +20,6 @@
         "prepublishOnly": "rollup -c"
     },
     "devDependencies": {
-        "tidy-dev-tools": "^1.0.1"
+        "tidy-dev-tools": "^1.0.2"
     }
 }
