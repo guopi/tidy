@@ -1,0 +1,7 @@
+{
+    "rollup": {
+        "external_modules": [
+            "fs"
+        ]
+    }
+}

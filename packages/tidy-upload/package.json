@@ -29,10 +29,6 @@
     },
     "devDependencies": {
         "@types/formidable": "^1.0.31",
-        "rollup": "^1.6.0",
-        "rollup-plugin-dts": "^0.13.0",
-        "rollup-plugin-typescript2": "^0.19.3",
-        "tslib": "^1.9.3",
-        "typescript": "^3.3.3333"
+        "tidy-dev-tools": "^1.0.1"
     }
 }

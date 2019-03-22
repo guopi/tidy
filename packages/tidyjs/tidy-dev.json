@@ -1,0 +1,9 @@
+{
+    "rollup": {
+        "external_modules": [
+            "http",
+            "net",
+            "url"
+        ]
+    }
+}

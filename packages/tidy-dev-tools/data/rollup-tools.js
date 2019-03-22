@@ -1,9 +1,9 @@
-import typescript from 'rollup-plugin-typescript2';
-import {dts} from "rollup-plugin-dts";
-import {existsSync, readdirSync, readFileSync} from "fs"
-import {readJsonFileSync} from "./util";
+const typescript = require('rollup-plugin-typescript2')
+const dts = require('rollup-plugin-dts').dts
+const fs = require('fs')
+const util = require('./util')
+const consts = require('./consts')
 
-const tidyDevConfFile = './tidy-dev.json'
 const typesDir = './types'
 const tsconfigOverride = {
     compilerOptions: {
@@ -11,23 +11,27 @@ const tsconfigOverride = {
     }
 }
 
-export function createRollupConfig() {
-    const tidyDevConf = readJsonFileSync(tidyDevConfFile) || {}
+exports.createRollupConfig = function createRollupConfig() {
+    const tidyDevConf = util.readJsonFileSync(consts.TidyDevConfPath) || {
+        rollup: {
+            external_modules: []
+        }
+    }
 
     const external_modules = tidyDevConf.rollup && tidyDevConf.rollup.external_modules || []
     if (!Array.isArray(external_modules))
-        throw new Error(`rollup.external_modules in ${tidyDevConfFile} is NOT Array`)
+        throw new Error(`rollup.external_modules in ${consts.TidyDevConfPath} is NOT Array`)
 
-    const pkg = readJsonFileSync('./package.json')
+    const pkg = util.readJsonFileSync('./package.json')
 
     const external = [
         ...Object.keys(pkg.dependencies || {}),
         ...external_modules,
     ]
 
-    const dtsInTypes = existsSync(typesDir) ?
-        readdirSync(typesDir).filter(name => name.endsWith(".d.ts"))
-            .map(name => `// merge from ${typesDir}/${name}\n${readFileSync(`${typesDir}/${name}`, 'utf8').trim()}`)
+    const dtsInTypes = fs.existsSync(typesDir) ?
+        fs.readdirSync(typesDir).filter(name => name.endsWith(".d.ts"))
+            .map(name => `// merge from ${typesDir}/${name}\n${fs.readFileSync(`${typesDir}/${name}`, 'utf8').trim()}`)
             .join('\n\n') + '\n\n// generate by rollup-plugin-dts\n'
         : ''
 

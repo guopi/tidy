@@ -1,0 +1,1 @@
+exports.createRollupConfig = require('./data/rollup-tools').createRollupConfig

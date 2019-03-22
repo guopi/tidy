@@ -1,14 +1,23 @@
-import fs from "fs"
+let fs = require('fs')
 
-export function readJsonFileSync(path) {
+function readTextFileSync(path) {
+    return fs.readFileSync(path, "utf-8")
+}
+
+function readJsonFileSync(path) {
     if (fs.existsSync(path)) {
-        const json = (fs.readFileSync(path) || '').trim()
+        const json = (readTextFileSync(path) || '').trim()
         if (json)
             return JSON.parse(json)
     }
     return undefined
 }
 
-export function writeJsonFileSync(path, json) {
+function writeJsonFileSync(path, json) {
     fs.writeFileSync(path, JSON.stringify(json, null, 4))
 }
+
+
+exports.readTextFileSync = readTextFileSync
+exports.readJsonFileSync = readJsonFileSync
+exports.writeJsonFileSync = writeJsonFileSync

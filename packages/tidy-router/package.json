@@ -1,9 +1,25 @@
 {
-  "name": "tidy-router",
-  "version": "1.0.1",
-  "main": "index.js",
-  "license": "MIT",
-  "devDependencies": {
-    "tidy-dev-tools": "^1.0.1"
-  }
+    "name": "tidy-router",
+    "version": "1.0.1",
+    "main": "./lib/index.cjs.js",
+    "license": "MIT",
+    "author": "guopi <guopi.pro@gmail.com>",
+    "description": "tidy-router",
+    "module": "./lib/index.esm.js",
+    "types": "./lib/index.d.ts",
+    "homepage": "https://github.com/",
+    "files": [
+        "lib"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/xxx/yyy.git"
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "prepublishOnly": "rollup -c"
+    },
+    "devDependencies": {
+        "tidy-dev-tools": "^1.0.1"
+    }
 }

@@ -31,11 +31,7 @@
         "@types/co-body": "^0.0.3",
         "@types/qs": "^6.5.2",
         "@types/type-is": "^1.6.2",
-        "rollup": "^1.6.0",
-        "rollup-plugin-dts": "^0.13.0",
-        "rollup-plugin-typescript2": "^0.19.3",
-        "tslib": "^1.9.3",
-        "typescript": "^3.3.3333"
+        "tidy-dev-tools": "^1.0.1"
     },
     "gitHead": "a68bdbaf6c3afbd59c7ccce54a3248e90a340f46"
 }

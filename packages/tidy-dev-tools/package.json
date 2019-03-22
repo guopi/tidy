@@ -11,6 +11,7 @@
     "bin": {
         "tidy-dev-cli": "./data/tidy-dev-cli.js"
     },
+    "main": "index.js",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/guopi/tidy.git"
