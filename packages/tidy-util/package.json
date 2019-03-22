@@ -1,0 +1,27 @@
+{
+    "name": "tidy-util",
+    "version": "1.0.0",
+    "description": "tidy utils",
+    "main": "./lib/index.cjs.js",
+    "license": "MIT",
+    "dependencies": {
+    },
+    "author": "guopi <guopi.pro@gmail.com>",
+    "module": "./lib/index.esm.js",
+    "types": "./lib/index.d.ts",
+    "homepage": "https://github.com/",
+    "files": [
+        "lib"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/xxx/yyy.git"
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "prepublishOnly": "rollup -c"
+    },
+    "devDependencies": {
+        "tidy-dev-tools": "^1.0.2"
+    }
+}
