@@ -1,0 +1,29 @@
+{
+    "version": "1.0.0",
+    "name": "tidy-dev-tools",
+    "author": "guopi <guopi.pro@gmail.com>",
+    "license": "MIT",
+    "description": "tidy dev tools",
+    "homepage": "https://github.com/guopi/tidy#readme",
+    "files": [
+        "data"
+    ],
+    "bin": {
+        "tidy-dev-cli": "./data/tidy-dev-cli.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/guopi/tidy.git"
+    },
+    "scripts": {
+    },
+    "dependencies": {
+        "rollup": "^1.6.0",
+        "rollup-plugin-dts": "^0.13.0",
+        "rollup-plugin-typescript2": "^0.19.3",
+        "tape": "^4.10.1",
+        "ts-node": "^8.0.3",
+        "tslib": "^1.9.3",
+        "typescript": "^3.3.3333"
+    }
+}

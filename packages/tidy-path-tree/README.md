@@ -5,6 +5,8 @@
 ## Usage
 
 ```typescript
+// for typescript
+
 import { PathTree } from 'tidy-path-tree'
 
 const tree = new PathTree<string>()
