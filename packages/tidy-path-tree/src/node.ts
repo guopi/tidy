@@ -1,5 +1,11 @@
 import { Cache, PathParams } from './types'
-import { DEFAULT_PARAM_PATTERN, PathAstNode, PathGrammarType } from './grammar'
+import {
+    CHARCODE_QUESTIONMARK,
+    DEFAULT_PARAM_PATTERN,
+    escapeTextToRegexStr,
+    PathAstNode,
+    PathGrammarType
+} from './grammar'
 import { PathError } from './error'
 
 type Char = string
@@ -207,7 +213,9 @@ export class PathNode {
     private _buildParams(matched: RegExpExecArray, toParams: PathParams) {
         if (this.params) {
             for (const p of this.params!) {
-                toParams[p[0]] = matched[p[1]]
+                const value = matched[p[1]]
+                if (value !== undefined)
+                    toParams[p[0]] = value
             }
         }
     }
@@ -224,25 +232,33 @@ function createRegexStrFromParam(ctx: AddContext, seg: PathAstNode, paramsTo: Pa
 
     const childCount = nodeChildCount(seg)
     let paramNameEnd = seg.end
+    let opt = false
     if (childCount > 0) {
         if (childCount !== 1) {
             throw new PathError(`Param Seg ${nodeText(seg)} is invalid format, it has ${childCount} children node`)
         }
-        const firstChild = seg.children[0]
-        if (!firstChild || !isType(firstChild, 'ReGroup'))
-            throw new PathError(`Param Seg ${nodeText(seg)} has invalid ${nodeType(firstChild)} children node`)
+        const astReGroup = seg.children[0]
+        if (!astReGroup || !isType(astReGroup, 'ReGroup'))
+            throw new PathError(`Param Seg ${nodeText(seg)} has invalid ${nodeType(astReGroup)} children node`)
 
-        paramNameEnd = firstChild.start
-        reStr = createRegexStrFromReGroup(ctx, firstChild, paramsTo)
+        paramNameEnd = astReGroup.start
+        if (seg.input.charCodeAt(paramNameEnd - 1) === CHARCODE_QUESTIONMARK) {
+            opt = true
+            paramNameEnd--
+        } else {
+            if (astReGroup.input.charCodeAt(astReGroup.end) === CHARCODE_QUESTIONMARK)
+                opt = true
+        }
+        reStr = createRegexStrFromReGroup(ctx, astReGroup, paramsTo)
     } else {
         ctx.groupIndex++
         reStr = `(${DEFAULT_PARAM_PATTERN})`
+        if (seg.input.charCodeAt(paramNameEnd - 1) === CHARCODE_QUESTIONMARK) {
+            paramNameEnd--
+            opt = true
+        }
     }
-    const opt = seg.input.charAt(paramNameEnd - 1) === '?'
-    if (opt) {
-        paramNameEnd--
-        reStr += '?'
-    }
+    if (opt) reStr += '?'
 
     const paramName = seg.input.substring(seg.start + 1, paramNameEnd)
     paramsTo._addParam(paramName, paramGroupIndex)
@@ -298,11 +314,6 @@ function hasDynaSeg(segs: PathAstNode[]): boolean {
             return true
     }
     return false
-}
-
-function escapeTextToRegexStr(text: string): string {
-    //todo
-    return text
 }
 
 function sameParams(params1: ParamNameAndIndexes | undefined, params2: ParamNameAndIndexes | undefined) {
