@@ -95,7 +95,7 @@ class PathGrammar {
         m.opt(this.QuestionMark),
         m.seq(
             this._ReGroup,
-            this.QuestionMark
+            m.opt(this.QuestionMark)
         ).opt
     ).ast
 
