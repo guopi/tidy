@@ -4,7 +4,7 @@ import { TidyRouter } from 'tidy-router'
 const router = new TidyRouter<any>()
     .on('GET', '/test/:name/:value', ctx => {
         return {
-            params: ctx.req.params
+            req: ctx.req
         }
     })
 

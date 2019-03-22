@@ -6,9 +6,9 @@ export abstract class AbstractResult {
     public statusCode?: number
     public statusMessage?: string
 
-    abstract end(resp: http.ServerResponse): void;
+    abstract sendBody(resp: http.ServerResponse): void
 
-    protected _sendHead(resp: http.ServerResponse) {
+    sendHead(resp: http.ServerResponse) {
         resp.statusCode = this.statusCode !== undefined ? this.statusCode : 200
 
         if (this.statusMessage !== undefined)
@@ -82,11 +82,10 @@ export abstract class AbstractResult {
 export class JsonResult<BODY extends TidyBaseResponseType> extends AbstractResult {
     constructor(private _json: BODY) {
         super()
+        this.type = 'application/json'
     }
 
-    end(resp: http.ServerResponse): void {
-        this.type = 'application/json'
-        this._sendHead(resp)
+    sendBody(resp: http.ServerResponse): void {
         resp.end(JSON.stringify(this._json))
     }
 }
@@ -95,21 +94,18 @@ export abstract class TidyResult extends AbstractResult {
 }
 
 export class HeadResult extends TidyResult {
-    end(resp: http.ServerResponse): void {
-        this._sendHead(resp)
-        resp.end()
+    sendBody(resp: http.ServerResponse): void {
     }
 }
 
 export class TextResult extends TidyResult {
     constructor(private _text: string | undefined) {
         super()
+        this.type = 'text/plain'
     }
 
-    end(resp: http.ServerResponse): void {
-        this.type = 'text/plain'
-        this._sendHead(resp)
-        resp.end(this._text)
+    sendBody(resp: http.ServerResponse): void {
+        resp.write(this._text)
     }
 }
 

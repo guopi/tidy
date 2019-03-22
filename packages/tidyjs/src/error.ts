@@ -50,12 +50,11 @@ export class ErrorResult extends TidyResult {
     constructor(private error: TidySimpleData, code?: number) {
         super()
         this.statusCode = code
+        this.type = 'application/json'
     }
 
-    end(resp: http.ServerResponse): void {
-        this.type = 'application/json'
-        this._sendHead(resp)
-        resp.end(JSON.stringify({
+    sendBody(resp: http.ServerResponse): void {
+        resp.write(JSON.stringify({
             error: this.error
         }))
     }

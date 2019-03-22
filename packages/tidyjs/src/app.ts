@@ -56,7 +56,22 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
 
     private _process(ctx: TidyProcessContext<REQ>, resp: http.ServerResponse, fn: TidyProcessor) {
         const _onerror: TidyErrorProcessor = ctx.onError
-        const _send = _sendResult.bind(null, resp)
+        const methodIsNotHead = ctx.method.toUpperCase() !== 'HEAD'
+
+        function _send(result: TidyProcessReturnEntity) {
+            if (result !== undefined) {
+                if (result instanceof AbstractResult) {
+                    result.sendHead(resp)
+                    if (methodIsNotHead)
+                        result.sendBody(resp)
+                } else {
+                    resp.statusCode = 200
+                    if (methodIsNotHead)
+                        resp.write(JSON.stringify(result))
+                }
+            }
+            resp.end()
+        }
 
         Promise.resolve(fn(ctx, _defaultProcessor))
             .then(_send)
@@ -70,16 +85,7 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
 }
 
 function _sendResult(resp: http.ServerResponse, result: TidyProcessReturnEntity): void {
-    if (result !== undefined) {
-        if (result instanceof AbstractResult)
-            result.end(resp)
-        else {
-            resp.statusCode = 200
-            resp.end(JSON.stringify(result))
-        }
-    } else {
-        resp.end()
-    }
+
 }
 
 function _defaultProcessor(): HeadResult {
