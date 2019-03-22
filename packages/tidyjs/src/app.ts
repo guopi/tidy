@@ -12,6 +12,10 @@ export type TidyProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType,
     REQ2 extends TidyBaseRequestType = REQ>
     = (ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
 
+export interface TidyProcessorLike<REQ extends TidyBaseRequestType = TidyBaseRequestType, REQ2 extends TidyBaseRequestType = REQ> {
+    asTidyProcessor(): TidyProcessor<REQ, REQ2>
+}
+
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     private _processors: TidyProcessor<any, any>[] = []
 
@@ -20,8 +24,11 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
      * @param fn {TidyProcessor} processor
      * @returns this
      */
-    public use<REQ2 extends TidyBaseRequestType = REQ>(processor: TidyProcessor<REQ, REQ2>): TidyServerApp<REQ2> {
-        this._processors.push(processor)
+    public use<REQ2 extends TidyBaseRequestType = REQ>(processor: TidyProcessor<REQ, REQ2> | TidyProcessorLike<REQ, REQ2>): TidyServerApp<REQ2> {
+        if ((processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor)
+            this._processors.push((processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor())
+        else
+            this._processors.push(processor as TidyProcessor<REQ, REQ2>)
         return this as any as TidyServerApp<REQ2>
     }
 

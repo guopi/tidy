@@ -1,6 +1,7 @@
 {
     "rollup": {
         "external_modules": [
+            "url"
         ]
     }
 }
