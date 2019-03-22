@@ -23,7 +23,9 @@
         "prepublishOnly": "rollup -c"
     },
     "dependencies": {
+        "@types/pino": "^5.8.6",
         "co-body": "^6.0.0",
+        "pino": "^5.11.2",
         "qs": "^6.6.0",
         "type-is": "^1.6.16"
     },

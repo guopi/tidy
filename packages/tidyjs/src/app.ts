@@ -1,5 +1,6 @@
 import http from 'http'
-import { TidyBaseRequestType } from './types'
+import pino from 'pino'
+import { TidyBaseRequestType, TidyLogger } from './types'
 import { AbstractResult, HeadResult, TidyErrorProcessor, TidyProcessReturn, TidyProcessReturnEntity } from './result'
 import { ListenOptions } from 'net'
 import { defaultErrorProcessor } from './error'
@@ -16,8 +17,17 @@ export interface TidyProcessorLike<REQ extends TidyBaseRequestType = TidyBaseReq
     asTidyProcessor(): TidyProcessor<REQ, REQ2>
 }
 
+export interface TidyServerAppOptions {
+    logger?: TidyLogger
+}
+
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     private _processors: TidyProcessor<any, any>[] = []
+    private _logger: TidyLogger
+
+    constructor(opts?: TidyServerAppOptions) {
+        this._logger = opts && opts.logger || pino()
+    }
 
     /**
      * add processor
@@ -46,9 +56,10 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
 
         const server = http.createServer((req: http.IncomingMessage, resp: http.ServerResponse) => {
             const ctx = new TidyProcessContext(req,
-                {
-                    headers: req.headers
-                }, defaultErrorProcessor) as TidyProcessContext<REQ>
+                { headers: req.headers },
+                defaultErrorProcessor,
+                this._logger
+            ) as TidyProcessContext<REQ>
             this._process(ctx, resp, fn)
         })
         server.listen(...arguments)
@@ -82,10 +93,6 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
                 }
             })
     }
-}
-
-function _sendResult(resp: http.ServerResponse, result: TidyProcessReturnEntity): void {
-
 }
 
 function _defaultProcessor(): HeadResult {

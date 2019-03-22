@@ -1,4 +1,5 @@
 import http from 'http'
+import pino from 'pino'
 
 export type TidyNonNilSimpleData = boolean | number | string | any[] | {}
 export type TidySimpleData = TidyNonNilSimpleData | null | undefined
@@ -6,6 +7,7 @@ export type TidySimpleData = TidyNonNilSimpleData | null | undefined
 export interface NamedStringDict {
     [name: string]: string
 }
+
 export interface NamedBoolDict {
     [name: string]: boolean
 }
@@ -27,4 +29,7 @@ export interface TidyBaseResponseType extends _Tidy_ResponseType {
 }
 
 export type TidyResponseBody<R extends TidyBaseResponseType = TidyBaseResponseType> = R extends { body: any } ? R['body'] : undefined
+
+export type TidyLogger = pino.Logger
+
 

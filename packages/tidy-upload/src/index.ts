@@ -40,18 +40,36 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
                 return await Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
             } finally {
                 _deleteFiles(deletable)
+                    .then(errors => {
+                        for (const path in errors) {
+                            ctx.logger.warn({
+                                when: `delete file ${path}`,
+                                msg: _errorMessage(errors[path])
+                            })
+                        }
+                    })
                     .catch(err => {
-                        //todo log errors
+                        ctx.logger.warn({
+                            when: `_deleteFiles/catch`,
+                            msg: _errorMessage(err)
+                        })
                     })
             }
         } else {
             return next(ctx as TidyProcessContext<WithFiles<REQ>>)
         }
-
     }
 }
 
 tidyUploadProcessor.DISABLE_KEY = 'upload'
+
+function _errorMessage(err: any) {
+    if (err instanceof Error)
+        return err.stack || err.toString()
+    if (err)
+        return err.text || err.message || err.toString()
+    return ''
+}
 
 function _deletableFilePaths(files?: TidyUploadFiles): string[] | undefined {
     if (!files)
