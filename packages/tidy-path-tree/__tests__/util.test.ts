@@ -2,21 +2,25 @@ import * as test from 'tape'
 import { trim } from '../src/util'
 
 test('trim', (t) => {
-    t.isEqual(trim('', '/'), '')
-    t.isEqual(trim('/', '/'), '')
-    t.isEqual(trim('//', '/'), '')
-    t.isEqual(trim('///', '/'), '')
-    t.isEqual(trim('////', '/'), '')
-    t.isEqual(trim('//a//', '/'), 'a')
-    t.isEqual(trim('//ab//', '/'), 'ab')
-    t.isEqual(trim('//abc//', '/'), 'abc')
-    t.isEqual(trim('/abc/', '/'), 'abc')
-    t.isEqual(trim('/abc', '/'), 'abc')
-    t.isEqual(trim('abc/', '/'), 'abc')
-    t.isEqual(trim('abc//', '/'), 'abc')
-    t.isEqual(trim('abc', '/'), 'abc')
-    t.isEqual(trim('ab', '/'), 'ab')
-    t.isEqual(trim('a', '/'), 'a')
+    function testTrim(text: string, expected: string) {
+        t.isEqual(trim(text, '/'), expected, `trim( "${text}" ) === "${expected}"`)
+    }
+
+    testTrim('', '')
+    testTrim('/', '')
+    testTrim('//', '')
+    testTrim('///', '')
+    testTrim('////', '')
+    testTrim('//a//', 'a')
+    testTrim('//ab//', 'ab')
+    testTrim('//abc//', 'abc')
+    testTrim('/abc/', 'abc')
+    testTrim('/abc', 'abc')
+    testTrim('abc/', 'abc')
+    testTrim('abc//', 'abc')
+    testTrim('abc', 'abc')
+    testTrim('ab', 'ab')
+    testTrim('a', 'a')
 
     t.end()
 })

@@ -5,6 +5,7 @@
         "moduleResolution": "node",
         "allowSyntheticDefaultImports": true,
         "outDir": "./out",
+        "sourceMap": true,
         "declaration": false,
         // "declarationDir": "./out/dts",
         "strict": true,
