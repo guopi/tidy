@@ -37,7 +37,7 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
         const deletable = _deletableFilePaths(files)
         if (deletable) {
             try {
-                return await Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
+                return Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
             } finally {
                 _deleteFiles(deletable)
                     .then(errors => {

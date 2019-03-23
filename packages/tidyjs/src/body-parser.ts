@@ -83,7 +83,7 @@ class CatEnvs {
         for (const cat of _allCats) {
             const catOpts = this[cat]
             if (catOpts && ctx.is(...catOpts.types))
-                return await CoBody[cat](req, catOpts.opts)
+                return CoBody[cat](req, catOpts.opts)
         }
         return {}
     }
