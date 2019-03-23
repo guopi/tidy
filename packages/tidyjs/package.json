@@ -14,7 +14,7 @@
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
     },
-    "homepage": "https://github.com/guopi/tidy#readme",
+    "homepage": "https://github.com/guopi/tidy/tree/master/packages/tidyjs",
     "files": [
         "lib"
     ],

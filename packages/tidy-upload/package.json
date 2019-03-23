@@ -7,7 +7,7 @@
     "main": "./lib/index.cjs.js",
     "module": "./lib/index.esm.js",
     "types": "./lib/index.d.ts",
-    "homepage": "https://github.com/guopi/tidy#readme",
+    "homepage": "https://github.com/guopi/tidy/tree/master/packages/tidy-upload",
     "files": [
         "lib"
     ],

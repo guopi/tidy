@@ -12,7 +12,7 @@ import { TidyRouter } from 'tidy-router'
 
 const app = new TidyServerApp()
 const router = new TidyRouter()
-router.add('/a/b/:name', ctx => {
+router.on('GET','/a/b/:name', ctx => {
     return {
         text : 'hello router'
     }
