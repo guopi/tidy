@@ -439,10 +439,6 @@ class StringSchema extends SingleValueSchema<string> {
     }
 }
 
-function joinPath(parent: string | number | undefined, path: string | number): string {
-    return parent === undefined ? path.toString() : `${parent}.${path}`
-}
-
 class ArraySchema<T extends JsonData> extends BaseSchema<T[]> {
     constructor(readonly item: TidySchema<T>) {
         super()
