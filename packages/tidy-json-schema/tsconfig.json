@@ -1,0 +1,3 @@
+{
+    "extends": "./tidy-tsconfig.base.json"
+}

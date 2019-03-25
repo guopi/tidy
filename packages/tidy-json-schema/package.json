@@ -1,0 +1,28 @@
+{
+    "name": "tidy-json-schema",
+    "version": "0.0.0",
+    "main": "./lib/index.cjs.js",
+    "license": "MIT",
+    "devDependencies": {
+        "tidy-dev-tools": "^1.0.2"
+    },
+    "author": "guopi <guopi.pro@gmail.com>",
+    "description": "tidy-json-schema",
+    "module": "./lib/index.esm.js",
+    "types": "./lib/index.d.ts",
+    "homepage": "https://github.com/",
+    "files": [
+        "lib"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/xxx/yyy.git"
+    },
+    "scripts": {
+        "build": "rollup -c",
+        "prepublishOnly": "rollup -c"
+    },
+    "dependencies": {
+        "isemail": "^3.2.0"
+    }
+}
