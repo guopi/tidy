@@ -1,8 +1,19 @@
 import { TidyServerApp } from 'tidyjs'
 import { TidyRouter } from 'tidy-router'
+import { tjs } from 'tidy-json-schema'
 
 const router = new TidyRouter<any>()
     .on('GET', '/test/:name/:value', ctx => {
+        return {
+            req: ctx.req
+        }
+    })
+    .on('GET', '/test2/:ver/:count', tjs.obj({
+        params: tjs.obj({
+            ver: tjs.str(),
+            count: tjs.int().max(100),
+        })
+    }), ctx => {
         return {
             req: ctx.req
         }

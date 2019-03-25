@@ -1,7 +1,14 @@
 import http from 'http'
 import pino from 'pino'
 import { TidyBaseRequestType, TidyLogger } from './types'
-import { AbstractResult, HeadResult, TidyErrorProcessor, TidyProcessReturn, TidyProcessReturnEntity } from './result'
+import {
+    AbstractResult,
+    HeadResult,
+    JsonResult,
+    TidyErrorProcessor,
+    TidyProcessReturn,
+    TidyProcessReturnEntity
+} from './result'
 import { ListenOptions } from 'net'
 import { defaultErrorProcessor } from './error'
 import { TidyProcessContext } from './context'
@@ -77,6 +84,8 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
                         result.sendBody(resp)
                 } else {
                     resp.statusCode = 200
+                    resp.setHeader('Content-Type', JsonResult.Content_Type)
+
                     if (methodIsNotHead)
                         resp.write(JSON.stringify(result))
                 }

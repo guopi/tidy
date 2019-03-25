@@ -80,9 +80,11 @@ export abstract class AbstractResult {
 }
 
 export class JsonResult<BODY extends TidyBaseResponseType> extends AbstractResult {
+    static readonly Content_Type = 'application/json'
+
     constructor(private _json: BODY) {
         super()
-        this.type = 'application/json'
+        this.type = JsonResult.Content_Type
     }
 
     sendBody(resp: http.ServerResponse): void {

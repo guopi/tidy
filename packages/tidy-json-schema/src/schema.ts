@@ -11,9 +11,9 @@ import {
 } from './types'
 import IsEmail from 'isemail'
 
-type RuleMessage<T extends JsonData> = string | ((v: T) => string)
+export type RuleMessage<T extends JsonData> = string | ((v: T) => string)
 
-type SchemaRule<T extends JsonData> = (v: T) => undefined | ValidateError | ValidateError[]
+export type SchemaRule<T extends JsonData> = (v: T) => undefined | ValidateError | ValidateError[]
 
 export type SchemaAction<T> = (v: T) => T
 
@@ -67,11 +67,11 @@ abstract class AbstractSchema<T extends JsonData> implements TidySchema<T> {
     }
 }
 
-function isNewValue<T>(result: ValidateResult<T>): result is WithNewValue<T> {
+export function isNewValue<T>(result: ValidateResult<T>): result is WithNewValue<T> {
     return result !== undefined && !Array.isArray(result)
 }
 
-function isErrors<T>(result: ValidateResult<T>): result is ValidateError[] {
+export function isErrors<T>(result: ValidateResult<T>): result is ValidateError[] {
     return Array.isArray(result)
 }
 

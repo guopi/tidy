@@ -19,6 +19,7 @@
     },
     "dependencies": {
         "tidy-cookie": "^1.0.12",
+        "tidy-json-schema": "^1.0.0",
         "tidy-router": "^1.0.7",
         "tidy-upload": "^1.0.15",
         "tidyjs": "^1.0.14"

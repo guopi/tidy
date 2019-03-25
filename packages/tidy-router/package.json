@@ -23,6 +23,7 @@
         "tidy-dev-tools": "^1.0.3"
     },
     "dependencies": {
+        "tidy-json-schema": "^1.0.0",
         "tidy-path-tree": "^1.0.15",
         "tidyjs": "^1.0.14"
     }

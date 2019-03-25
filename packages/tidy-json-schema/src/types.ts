@@ -1,5 +1,3 @@
-export type OptMultiValues<T> = undefined | T | T[]
-
 export type NonNilJsonData = boolean | number | string | any[] | {}
 export type JsonData = NonNilJsonData | null | undefined
 export type Int = number
@@ -26,7 +24,7 @@ export interface TidySchema<T extends JsonData> {
      * @returns WithNewValue<T> : value converted
      * @returns ValidateError[] : validate failed
      */
-    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T>
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<T>
 
     opt(): TidySchema<T | undefined>
 
