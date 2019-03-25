@@ -1,6 +1,6 @@
 {
     "name": "tidy-util",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "description": "tidy utils",
     "main": "./lib/index.cjs.js",
     "license": "MIT",
@@ -20,6 +20,6 @@
         "prepublishOnly": "rollup -c"
     },
     "devDependencies": {
-        "tidy-dev-tools": "^1.0.3"
+        "tidy-dev-tools": "^1.0.4"
     }
 }
