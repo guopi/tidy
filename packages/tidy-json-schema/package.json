@@ -10,13 +10,13 @@
     "description": "tidy-json-schema",
     "module": "./lib/index.esm.js",
     "types": "./lib/index.d.ts",
-    "homepage": "https://github.com/",
+    "homepage": "https://github.com/guopi/tidy/tree/master/packages/tidy-schema",
     "files": [
         "lib"
     ],
     "repository": {
         "type": "git",
-        "url": "git+https://github.com/xxx/yyy.git"
+        "url": "git+https://github.com/guopi/tidy.git"
     },
     "scripts": {
         "build": "rollup -c",
