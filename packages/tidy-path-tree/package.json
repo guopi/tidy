@@ -1,5 +1,5 @@
 {
-    "version": "1.0.14",
+    "version": "1.0.15",
     "name": "tidy-path-tree",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -26,7 +26,7 @@
     },
     "devDependencies": {
         "@types/tape": "^4.2.33",
-        "tidy-dev-tools": "^1.0.2"
+        "tidy-dev-tools": "^1.0.3"
     },
     "dependencies": {
         "myna-parser": "^2.5.1"
