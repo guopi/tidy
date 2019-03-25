@@ -1,30 +1,48 @@
 import { ErrorCodes } from './error'
-import { Converted, Int, JsonData, SchemaArrayOf, SchemaDictOf, TidySchema, ValidateError } from './types'
+import {
+    Int,
+    JsonData,
+    SchemaArrayOf,
+    SchemaDictOf,
+    TidySchema,
+    ValidateError,
+    ValidateResult,
+    WithNewValue
+} from './types'
 import IsEmail from 'isemail'
 
 type RuleMessage<T extends JsonData> = string | ((v: T) => string)
 
-type SchemaRule<T extends JsonData> = (v: T) => ValidateError[] | undefined
+type SchemaRule<T extends JsonData> = (v: T) => undefined | ValidateError | ValidateError[]
 
 export type SchemaAction<T> = (v: T) => T
 
-function addErrorsTo(target: ValidateError[] | undefined, errors: ValidateError[]): ValidateError[] {
-    if (!target)
-        return errors
-    target.push(...errors)
-    return target
+function addErrorsTo(target: ValidateError[] | undefined, errors: ValidateError | ValidateError[]): ValidateError[] {
+    if (Array.isArray(errors)) {
+        if (!target)
+            return errors
+
+        target.push(...errors)
+        return target
+    } else {
+        if (!target)
+            return [errors]
+
+        target.push(errors)
+        return target
+    }
 }
 
 abstract class AbstractSchema<T extends JsonData> implements TidySchema<T> {
     abstract typeName(): string
 
-    abstract validate(originValue: any, parentPath: string[] | undefined): undefined | ValidateError[] | Converted<T>
+    abstract validate(value: any, parentPath: string[] | undefined): ValidateResult<T>
 
-    protected _typeErrors(x: any, parentPath: string[] | undefined): ValidateError[] {
+    protected _typeErrors(value: any, parentPath: string[] | undefined): ValidateError[] {
         return [{
             path: parentPath,
             code: ErrorCodes.ErrorType,
-            message: `must be ${this.typeName()}, but ${typeof x.value}`
+            message: `must be ${this.typeName()}, but ${typeof value}`
         }]
     }
 
@@ -45,61 +63,69 @@ abstract class AbstractSchema<T extends JsonData> implements TidySchema<T> {
     }
 }
 
+function isNewValue<T>(result: ValidateResult<T>): result is WithNewValue<T> {
+    return result !== undefined && !Array.isArray(result)
+}
+
+function isErrors<T>(result: ValidateResult<T>): result is ValidateError[] {
+    return Array.isArray(result)
+}
+
 abstract class BaseSchema<T extends JsonData> extends AbstractSchema<T> {
     private _actions?: SchemaAction<T>[]
     private _rules?: SchemaRule<T>[]
 
     /**
-     * @returns true : _checkType successful
-     * @returns false : _checkType failed and errors is this._typeErrors(...)
-     * @returns Converted<T> : value converted
-     * @returns ValidateError[] : _checkType failed
+     * @returns {false} : _checkType failed and errors is this._typeErrors(...)
+     * @returns {undefined} : _checkType successful
+     * @returns {WithNewValue<T>} : successful and new value converted
+     * @returns {ValidateError[]} : _checkType failed
      */
-    protected abstract _checkType(x: any): true | false | Converted<T> | ValidateError[]
+    protected abstract _checkType(x: any): false | ValidateResult<T>
 
-    protected _convert(x: T): T {
+    protected _convert(value: T): T {
         const actions = this._actions
         if (actions) {
             for (const act of actions) {
-                x = act(x)
+                value = act(value)
             }
         }
-        return x
+        return value
     }
 
-    protected _checkRules(originValue: any, value: T, parentPath: string[] | undefined): undefined | Converted<T> | ValidateError[] {
+    protected _checkRules(value: T, parentPath: string[] | undefined): ValidateError[] | undefined {
         let errors: ValidateError[] | undefined = undefined
         const rules = this._rules
         if (rules) {
             for (const rule of rules) {
                 const r = rule(value)
                 if (r) {
-                    prependParent(r, parentPath)
+                    prependParentToErrors(r, parentPath)
                     errors = addErrorsTo(errors, r)
                 }
             }
         }
-        if (errors)
-            return errors
-        return value !== originValue ? new Converted(value) : undefined
+        return errors
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): undefined | ValidateError[] | Converted<T> {
-        const typeResult = this._checkType(originValue)
-        let converted: T
-        if (typeResult === true) {
-            converted = originValue as any
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<T> {
+        const typeResult = this._checkType(value)
+        let newValue: T
+        if (typeResult === undefined) {
+            newValue = value as any
         } else if (typeResult === false) {
-            return this._typeErrors(originValue, parentPath)
-        } else if (typeResult instanceof Converted) {
-            converted = typeResult.value
+            return this._typeErrors(value, parentPath)
+        } else if (isNewValue(typeResult)) {
+            newValue = typeResult.newValue
         } else {
-            // ValidateError[]
             return typeResult
         }
 
-        converted = this._convert(converted)
-        return this._checkRules(originValue, converted, parentPath)
+        newValue = this._convert(newValue)
+        const errors = this._checkRules(newValue, parentPath)
+        if (errors)
+            return errors
+        return newValue === value ? undefined : { newValue }
     }
 
     must(rule: SchemaRule<T>): this {
@@ -125,8 +151,8 @@ class UndefinedSchema extends AbstractSchema<undefined> {
         return this
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<undefined> | undefined {
-        return originValue !== undefined ? undefined : this._typeErrors(originValue, parentPath)
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<undefined> | undefined {
+        return value !== undefined ? undefined : this._typeErrors(value, parentPath)
     }
 }
 
@@ -139,8 +165,8 @@ class NullSchema extends AbstractSchema<null> {
         return this
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<null> | undefined {
-        return originValue !== null ? undefined : this._typeErrors(originValue, parentPath)
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<null> | undefined {
+        return value !== null ? undefined : this._typeErrors(value, parentPath)
     }
 }
 
@@ -195,25 +221,25 @@ class BoolSchema extends SingleValueSchema<boolean> {
         return 'boolean'
     }
 
-    _checkType(x: any): true | false | Converted<boolean> | ValidateError[] {
+    protected _checkType(x: any): false | ValidateResult<boolean> {
         switch (typeof x) {
             case 'boolean':
-                return true
+                return undefined
             case 'number':
-                return new Converted(x !== 0)
+                return { newValue: x !== 0 }
             case 'string':
                 switch (x.toLowerCase()) {
                     case 'true':
                     case 'yes':
                     case 'on':
                     case '1':
-                        return new Converted(true)
+                        return { newValue: true }
 
                     case 'false':
                     case 'no':
                     case 'off':
                     case '0':
-                        return new Converted(false)
+                        return { newValue: false }
                 }
         }
         return false
@@ -225,13 +251,13 @@ class NumberSchema extends SingleValueSchema<number> {
         return 'number'
     }
 
-    _checkType(x: any): true | false | Converted<number> | ValidateError[] {
+    _checkType(x: any): false | ValidateResult<number> {
         switch (typeof x) {
             case 'number':
-                return true
+                return undefined
             case 'string':
                 if (!isNaN(x as any))
-                    return new Converted(Number(x))
+                    return { newValue: Number(x) }
         }
         return false
     }
@@ -285,15 +311,15 @@ class IntSchema extends NumberSchema {
         return 'integer'
     }
 
-    _checkType(x: any): true | false | Converted<number> | ValidateError[] {
+    _checkType(x: any): false | ValidateResult<Int> {
         switch (typeof x) {
             case 'number':
-                return Number.isInteger(x)
+                return Number.isInteger(x) ? undefined : false
             case 'string':
                 if (!isNaN(x as any)) {
                     const i = Number(x)
                     if (Number.isInteger(i))
-                        return new Converted(i)
+                        return { newValue: i }
                 }
         }
         return false
@@ -305,11 +331,11 @@ class StringSchema extends SingleValueSchema<string> {
         return 'string'
     }
 
-    _checkType(x: any): true | false | Converted<string> | ValidateError[] {
+    _checkType(x: any): false | ValidateResult<string> {
         if (typeof x === 'string')
-            return true
+            return undefined
         if (x != null) // not null & not undefined
-            return new Converted(x.toString())
+            return { newValue: x.toString() }
         return false
     }
 
@@ -421,8 +447,8 @@ class ArraySchema<T extends JsonData> extends BaseSchema<T[]> {
             for (let i = 0; i < n; i++) {
                 const r = itemType.validate(arr[i], [i.toString()])
                 if (r !== undefined) {
-                    if (r instanceof Converted) {
-                        arr[i] = r.value
+                    if (isNewValue(r)) {
+                        arr[i] = r.newValue
                     } else {
                         errors = addErrorsTo(errors, r)
                     }
@@ -436,8 +462,8 @@ class ArraySchema<T extends JsonData> extends BaseSchema<T[]> {
         return `array<${this.item.typeName()}>`
     }
 
-    _checkType(x: any): boolean {
-        return Array.isArray(x)
+    _checkType(x: any): undefined | false {
+        return Array.isArray(x) ? undefined : false
     }
 
     maxLen(max: Int, message?: RuleMessage<T[]>): this {
@@ -492,8 +518,8 @@ class TupleSchema<Tuple extends JsonData[]> extends BaseSchema<Tuple> {
             for (let i = 0; i < n; i++) {
                 const r = this.items[i].validate(tuple[i], [i.toString()])
                 if (r !== undefined) {
-                    if (r instanceof Converted)
-                        tuple[i] = r.value
+                    if (isNewValue(r))
+                        tuple[i] = r.newValue
                     else
                         errors = addErrorsTo(errors, r)
                 }
@@ -502,8 +528,9 @@ class TupleSchema<Tuple extends JsonData[]> extends BaseSchema<Tuple> {
         })
     }
 
-    _checkType(x: any): boolean {
+    _checkType(x: any): false | undefined {
         return Array.isArray(x) && x.length <= this.items.length
+            ? undefined : false
     }
 
     typeName(): string {
@@ -519,8 +546,8 @@ class ObjSchema<T extends {}> extends BaseSchema<T> {
             for (const k in this.dict) {
                 const r = this.dict[k].validate(obj[k], [k])
                 if (r !== undefined) {
-                    if (r instanceof Converted)
-                        obj[k] = r.value
+                    if (isNewValue(r))
+                        obj[k] = r.newValue
                     else
                         errors = addErrorsTo(errors, r)
                 }
@@ -534,8 +561,9 @@ class ObjSchema<T extends {}> extends BaseSchema<T> {
         return 'object'
     }
 
-    _checkType(x: any): boolean {
+    _checkType(x: any): false | undefined {
         return typeof x === 'object' && !Array.isArray(x)
+            ? undefined : false
     }
 }
 
@@ -548,7 +576,7 @@ class OrNullSchema<T extends JsonData> extends AbstractSchema<T | null> {
         return this.type.typeName() + ' | null'
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<T> | undefined {
+    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T> {
         if (originValue === null)
             return undefined
         return this.type.validate(originValue, parentPath)
@@ -568,7 +596,7 @@ class OptSchema<T extends JsonData> extends AbstractSchema<T | undefined> {
         return this
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<T> | undefined {
+    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T> {
         if (originValue === undefined)
             return undefined
         return this.type.validate(originValue, parentPath)
@@ -584,13 +612,13 @@ class OrSchema<T1 extends JsonData, T2 extends JsonData> extends AbstractSchema<
         return `( ${this.type1.typeName()} | ${this.type2.typeName()})`
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<T1 | T2> | undefined {
+    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T1 | T2> {
         const r1 = this.type1.validate(originValue, parentPath)
-        if (r1 === undefined || r1 instanceof Converted)
+        if (r1 === undefined || isNewValue(r1))
             return r1
 
         const r2 = this.type2.validate(originValue, parentPath)
-        if (r2 === undefined || r2 instanceof Converted)
+        if (r2 === undefined || isNewValue(r2))
             return r2
 
         r1.push(...r2)
@@ -607,26 +635,26 @@ class AndSchema<T1 extends JsonData, T2 extends JsonData> extends AbstractSchema
         return `${this.type1.typeName()} & ${this.type2.typeName()}`
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateError[] | Converted<T1 & T2> | undefined {
-        const r1 = this.type1.validate(originValue, parentPath)
-        let converted = originValue
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<T1 & T2> {
+        const r1 = this.type1.validate(value, parentPath)
+        let newValue = value
         let errors: ValidateError[] | undefined
         if (r1 === undefined) {
-        } else if (r1 instanceof Converted) {
-            converted = r1.value
+        } else if (isNewValue(r1)) {
+            newValue = r1.newValue
         } else {
             errors = r1
         }
 
-        const r2 = this.type2.validate(converted, parentPath)
+        const r2 = this.type2.validate(newValue, parentPath)
         if (r2 === undefined) {
-        } else if (r2 instanceof Converted) {
-            converted = r2.value
+        } else if (isNewValue(r2)) {
+            newValue = r2.newValue
         } else {
             errors = addErrorsTo(errors, r2)
         }
 
-        return errors || (converted !== originValue ? new Converted(converted) : undefined)
+        return errors || (newValue === value ? undefined : { newValue })
     }
 }
 
@@ -651,7 +679,7 @@ class AnySchema implements TidySchema<any> {
         return 'any'
     }
 
-    validate(value: any, parentPath: string[] | undefined): Converted<any> | ValidateError[] | undefined {
+    validate(value: any, parentPath: string[] | undefined): ValidateResult<any> {
         return undefined
     }
 }
@@ -689,12 +717,20 @@ export const tjs = {
     },
 }
 
-function prependParent(errors: ValidateError[], parentPath: string[] | undefined) {
+function prependParentToErrors(errors: ValidateError | ValidateError[], parentPath: string[] | undefined) {
     if (parentPath) {
-        for (const e of errors) {
-            e.path = e.path ? [...parentPath, ...e.path] : [...parentPath]
+        if (Array.isArray(errors)) {
+            for (const e of errors) {
+                e.path = e.path ? [...parentPath, ...e.path] : [...parentPath]
+            }
+        } else {
+            prependParentToError(errors, parentPath)
         }
     }
+}
+
+function prependParentToError(error: ValidateError, parentPath: string[]) {
+    error.path = error.path ? [...parentPath, ...error.path] : [...parentPath]
 }
 
 function makeMessage<T>(v: T, message: RuleMessage<T> | undefined): string | undefined {

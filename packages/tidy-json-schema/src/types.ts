@@ -12,10 +12,8 @@ export interface ValidateError {
     path?: ErrorPath
 }
 
-export class Converted<T> {
-    constructor(readonly value: T) {
-    }
-}
+export type WithNewValue<T> = { newValue: T }
+export type ValidateResult<T> = undefined | ValidateError[] | WithNewValue<T>
 
 export interface TidySchema<T extends JsonData> {
     typeName(): string
@@ -24,10 +22,10 @@ export interface TidySchema<T extends JsonData> {
      * @param originValue
      * @param parentPath
      * @returns undefined : validate successful
-     * @returns Converted<T> : value converted
+     * @returns WithNewValue<T> : value converted
      * @returns ValidateError[] : validate failed
      */
-    validate(originValue: any, parentPath: string[] | undefined): undefined | ValidateError[] | Converted<T>
+    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T>
 
     opt(): TidySchema<T | undefined>
 
