@@ -36,6 +36,10 @@ function addErrorsTo(target: ValidateError[] | undefined, errors: ValidateError 
 abstract class AbstractSchema<T extends JsonData> implements TidySchema<T> {
     abstract typeName(): string
 
+    isOpt(): boolean {
+        return false
+    }
+
     abstract validate(value: any, parentPath: string[] | undefined): ValidateResult<T>
 
     protected _typeErrors(value: any, parentPath: string[] | undefined): ValidateError[] {
@@ -145,6 +149,10 @@ abstract class BaseSchema<T extends JsonData> extends AbstractSchema<T> {
 class UndefinedSchema extends AbstractSchema<undefined> {
     typeName(): string {
         return 'undefined'
+    }
+
+    isOpt(): boolean {
+        return true
     }
 
     opt(): this {
@@ -308,7 +316,7 @@ class NumberSchema extends SingleValueSchema<number> {
 
 class IntSchema extends NumberSchema {
     typeName(): string {
-        return 'integer'
+        return 'Int'
     }
 
     _checkType(x: any): false | ValidateResult<Int> {
@@ -459,7 +467,7 @@ class ArraySchema<T extends JsonData> extends BaseSchema<T[]> {
     }
 
     typeName(): string {
-        return `array<${this.item.typeName()}>`
+        return `Array<${this.item.typeName()}>`
     }
 
     _checkType(x: any): undefined | false {
@@ -534,7 +542,7 @@ class TupleSchema<Tuple extends JsonData[]> extends BaseSchema<Tuple> {
     }
 
     typeName(): string {
-        return `tuple<${this.items.map(t => t.typeName()).join()}>`
+        return `[ ${this.items.map(t => t.typeName()).join(', ')} ]`
     }
 }
 
@@ -558,7 +566,12 @@ class ObjSchema<T extends {}> extends BaseSchema<T> {
     }
 
     typeName(): string {
-        return 'object'
+        return `{ ${Object.keys(this.dict).map(
+            k => {
+                const type = (this.dict as SchemaDictOf<any>)[k]
+                return `${k}${type.isOpt() ? '?' : ''}: ${type.typeName()}; `
+            }
+        ).join('')}}`
     }
 
     _checkType(x: any): false | undefined {
@@ -590,6 +603,10 @@ class OptSchema<T extends JsonData> extends AbstractSchema<T | undefined> {
 
     constructor(readonly type: TidySchema<T>) {
         super()
+    }
+
+    isOpt(): boolean {
+        return true
     }
 
     opt(): this {
@@ -667,6 +684,10 @@ class AnySchema implements TidySchema<any> {
         return this
     }
 
+    isOpt(): boolean {
+        return true
+    }
+
     opt(): this {
         return this
     }
@@ -682,6 +703,30 @@ class AnySchema implements TidySchema<any> {
     validate(value: any, parentPath: string[] | undefined): ValidateResult<any> {
         return undefined
     }
+}
+
+function prependParentToErrors(errors: ValidateError | ValidateError[], parentPath: string[] | undefined) {
+    if (parentPath) {
+        if (Array.isArray(errors)) {
+            for (const e of errors) {
+                e.path = e.path ? [...parentPath, ...e.path] : [...parentPath]
+            }
+        } else {
+            prependParentToError(errors, parentPath)
+        }
+    }
+}
+
+function prependParentToError(error: ValidateError, parentPath: string[]) {
+    error.path = error.path ? [...parentPath, ...error.path] : [...parentPath]
+}
+
+function makeMessage<T>(v: T, message: RuleMessage<T> | undefined): string | undefined {
+    return message && (
+        typeof message === 'string'
+            ? message
+            : message(v)
+    )
 }
 
 export const tjs = {
@@ -715,28 +760,4 @@ export const tjs = {
     tuple<Tuple extends JsonData[]>(...items: SchemaArrayOf<Tuple>) {
         return new TupleSchema(items)
     },
-}
-
-function prependParentToErrors(errors: ValidateError | ValidateError[], parentPath: string[] | undefined) {
-    if (parentPath) {
-        if (Array.isArray(errors)) {
-            for (const e of errors) {
-                e.path = e.path ? [...parentPath, ...e.path] : [...parentPath]
-            }
-        } else {
-            prependParentToError(errors, parentPath)
-        }
-    }
-}
-
-function prependParentToError(error: ValidateError, parentPath: string[]) {
-    error.path = error.path ? [...parentPath, ...error.path] : [...parentPath]
-}
-
-function makeMessage<T>(v: T, message: RuleMessage<T> | undefined): string | undefined {
-    return message && (
-        typeof message === 'string'
-            ? message
-            : message(v)
-    )
 }

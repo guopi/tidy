@@ -17,6 +17,7 @@ export type ValidateResult<T> = undefined | ValidateError[] | WithNewValue<T>
 
 export interface TidySchema<T extends JsonData> {
     typeName(): string
+    isOpt():boolean
 
     /**
      * @param originValue
