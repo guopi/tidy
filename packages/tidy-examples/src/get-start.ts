@@ -9,8 +9,8 @@ new TidyServerApp()
             httpVersion: ctx.httpVersion,
         })
     })
-
     .listen(3000)
+
 console.log(`get-start example started. test command:
 \thttp post :3000/test/123
 `)

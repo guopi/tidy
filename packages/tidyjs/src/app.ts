@@ -5,23 +5,23 @@ import {
     AbstractResult,
     HeadResult,
     JsonResult,
-    TidyErrorProcessor,
-    TidyProcessReturn,
-    TidyProcessReturnEntity
+    TidyErrorHandler,
+    TidyReturn,
+    TidyReturnEntity
 } from './result'
 import { ListenOptions } from 'net'
-import { defaultErrorProcessor } from './error'
-import { TidyProcessContext } from './context'
+import { defaultErrorHandler } from './error'
+import { TidyContext } from './context'
 
-export type TidyNextProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>
-    = (ctx: TidyProcessContext<REQ>) => TidyProcessReturn<any>
+export type TidyNext<REQ extends TidyBaseRequestType = TidyBaseRequestType>
+    = (ctx: TidyContext<REQ>) => TidyReturn<any>
 
-export type TidyProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType,
+export type TidyPlugin<REQ extends TidyBaseRequestType = TidyBaseRequestType,
     REQ2 extends TidyBaseRequestType = REQ>
-    = (ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ2>) => TidyProcessReturn<any>
+    = (ctx: TidyContext<REQ>, next: TidyNext<REQ2>) => TidyReturn<any>
 
-export interface TidyProcessorLike<REQ extends TidyBaseRequestType = TidyBaseRequestType, REQ2 extends TidyBaseRequestType = REQ> {
-    asTidyProcessor(): TidyProcessor<REQ, REQ2>
+export interface TidyPluginLike<REQ extends TidyBaseRequestType = TidyBaseRequestType, REQ2 extends TidyBaseRequestType = REQ> {
+    asTidyPlugin(): TidyPlugin<REQ, REQ2>
 }
 
 export interface TidyServerAppOptions {
@@ -29,7 +29,7 @@ export interface TidyServerAppOptions {
 }
 
 export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
-    private _processors: TidyProcessor<any, any>[] = []
+    private _plugins: TidyPlugin<any, any>[] = []
     private _logger: TidyLogger
 
     constructor(opts?: TidyServerAppOptions) {
@@ -37,15 +37,15 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
     }
 
     /**
-     * add processor
-     * @param fn {TidyProcessor} processor
+     * use plugin
+     * @param plugin {TidyPlugin}
      * @returns this
      */
-    public use<REQ2 extends TidyBaseRequestType = REQ>(processor: TidyProcessor<REQ, REQ2> | TidyProcessorLike<REQ, REQ2>): TidyServerApp<REQ2> {
-        if ((processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor)
-            this._processors.push((processor as TidyProcessorLike<REQ, REQ2>).asTidyProcessor())
+    public use<REQ2 extends TidyBaseRequestType = REQ>(plugin: TidyPlugin<REQ, REQ2> | TidyPluginLike<REQ, REQ2>): TidyServerApp<REQ2> {
+        if ((plugin as TidyPluginLike<REQ, REQ2>).asTidyPlugin)
+            this._plugins.push((plugin as TidyPluginLike<REQ, REQ2>).asTidyPlugin())
         else
-            this._processors.push(processor as TidyProcessor<REQ, REQ2>)
+            this._plugins.push(plugin as TidyPlugin<REQ, REQ2>)
         return this as any as TidyServerApp<REQ2>
     }
 
@@ -59,24 +59,24 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
     listen(handle: any, backlog?: number, listeningListener?: Function): void;
     listen(handle: any, listeningListener?: Function): void
     public listen(): void {
-        const fn = _compose(this._processors)
+        const fn = _compose(this._plugins)
 
         const server = http.createServer((req: http.IncomingMessage, resp: http.ServerResponse) => {
-            const ctx = new TidyProcessContext(req,
+            const ctx = new TidyContext(req,
                 { headers: req.headers },
-                defaultErrorProcessor,
+                defaultErrorHandler,
                 this._logger
-            ) as TidyProcessContext<REQ>
+            ) as TidyContext<REQ>
             this._process(ctx, resp, fn)
         })
         server.listen(...arguments)
     }
 
-    private _process(ctx: TidyProcessContext<REQ>, resp: http.ServerResponse, fn: TidyProcessor) {
-        const _onerror: TidyErrorProcessor = ctx.onError
+    private _process(ctx: TidyContext<REQ>, resp: http.ServerResponse, fn: TidyPlugin) {
+        const _onerror: TidyErrorHandler = ctx.onError
         const methodIsNotHead = ctx.method.toUpperCase() !== 'HEAD'
 
-        function _send(result: TidyProcessReturnEntity) {
+        function _send(result: TidyReturnEntity) {
             if (result !== undefined) {
                 if (result instanceof AbstractResult) {
                     result.sendHead(resp)
@@ -93,7 +93,7 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
             resp.end()
         }
 
-        Promise.resolve(fn(ctx, _defaultProcessor))
+        Promise.resolve(fn(ctx, _defaultPlugin))
             .then(_send)
             .catch(err => {
                 if (err != undefined) {
@@ -104,20 +104,20 @@ export class TidyServerApp<REQ extends TidyBaseRequestType = TidyBaseRequestType
     }
 }
 
-function _defaultProcessor(): HeadResult {
+function _defaultPlugin(): HeadResult {
     let r = new HeadResult()
     r.statusCode = 404
     return r
 }
 
-function _compose(array: TidyProcessor<any, any>[]): TidyProcessor {
-    return function (context: TidyProcessContext, next: TidyNextProcessor<any>): TidyProcessReturn<any> {
+function _compose(array: TidyPlugin<any, any>[]): TidyPlugin {
+    return function (context: TidyContext, next: TidyNext<any>): TidyReturn<any> {
         // last called #
         let lastIndex = -1
 
         return dispatch(0, context)
 
-        function dispatch(i: number, ctx: TidyProcessContext): TidyProcessReturn<any> {
+        function dispatch(i: number, ctx: TidyContext): TidyReturn<any> {
             if (i <= lastIndex)
                 return Promise.reject(new Error('next() called multiple times'))
 

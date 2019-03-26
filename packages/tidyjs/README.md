@@ -1,53 +1,50 @@
 # `tidyjs`
+Born for more tidy development of building server-side applications on top of Node.js & Typescript.
 
+## Features
+- Developer friendly
+    Typescript
+- Separation of business logic and web protocol
+- full async
+- full Typescript support
+- type safe & error
+- routing support type and schema 
+- Extensible:
+    processor system
+- High performance
+    routing use used Prefix Tree
+- Logging: we choose [Pino](https://github.com/pinojs/pino), a very low overhead logger
+- Clean and solid code style
+    type safe & error
+
+## Installation
+```bash
+$ npm install tidyjs --save
+```
+Node.js >= 8.0.0 required
+
+## Getting Started
 ```js
-import { ServerApp } from 'tidyjs'
+import { TidyServerApp } from 'tidyjs'
 
-const app = new ServerApp()
-
-app.onGet('/', input => {
+const app = new TidyServerApp()
+app.use(ctx => {
     return {
        message: `Hello ${input.query.my_name || 'world'}, I am tidyjs`,
     }
 })
-
 app.listen(3000)
+
 ```
+Node.js >= 8.0.0 required.
 
-## Introduction
-tidyjs is tidy Node.js framework for building server-side applications on top of TypeScript & JavaScript.
+## Docs
 
-tidyjs uses modern JavaScript, is built with TypeScript (preserves compatibility with pure JavaScript).
+## Examples
+See [tidy-examples]
 
-Under the hood, tidyjs makes use of [Express](https://github.com/expressjs/express), but hide it's details
+## License
+[MIT]
 
-## EcoSystem
-| Project | Status | Description |
-|---------|--------|-------------|
-| [tidyjs] | ![tidyjs-version] | core project|
-| [tidy-cookie] | ![tidy-cookie-version] | plugin for parse cookie |
-| [tidy-upload] | ![tidy-upload-version] | plugin for parse multipart request |
-
-## Installation
-```
-npm i tidyjs --save
-```
-Or
-```
-yarn add tidyjs
-```
-
-
-
-
-
-
-
-[tidyjs]: https://github.com/guopi/tidy/tree/master/packages/tidyjs
-[tidyjs-version]: https://img.shields.io/npm/v/tidyjs.svg
-
-[tidy-cookie]: https://github.com/guopi/tidy/tree/master/packages/tidy-cookie
-[tidy-cookie-version]: https://img.shields.io/npm/v/tidy-cookie.svg
-
-[tidy-upload]: https://github.com/guopi/tidy/tree/master/packages/tidy-upload
-[tidy-upload-version]: https://img.shields.io/npm/v/tidy-upload.svg
+[MIT]: https://github.com/guopi/tidy/blob/master/LICENSE
+[tidy-examples]: https://github.com/guopi/tidy/tree/master/packages/tidy-examples

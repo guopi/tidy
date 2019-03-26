@@ -1,14 +1,14 @@
 import { NamedBoolDict, TidyBaseRequestType, TidyLogger } from './types'
-import { TidyErrorProcessor } from './result'
+import { TidyErrorHandler } from './result'
 import typeis from 'type-is'
 import http from 'http'
 
-export class TidyProcessContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
+export class TidyContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
     disables?: NamedBoolDict
 
     constructor(public _originReq: http.IncomingMessage,
                 public req: REQ,
-                public onError: TidyErrorProcessor,
+                public onError: TidyErrorHandler,
                 public logger: TidyLogger
     ) {
     }

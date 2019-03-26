@@ -1,7 +1,7 @@
 import { TidyBaseRequestType } from './types'
-import { TidyNextProcessor } from './app'
-import { TidyProcessReturnPromise } from './result'
-import { TidyProcessContext } from './context'
+import { TidyNext } from './app'
+import { TidyReturnPromise } from './result'
+import { TidyContext } from './context'
 import CoBody from 'co-body'
 
 interface CatOpts {
@@ -77,7 +77,7 @@ class CatEnvs {
         }
     }
 
-    async parse<REQ extends TidyBaseRequestType>(ctx: TidyProcessContext<REQ>): Promise<any> {
+    async parse<REQ extends TidyBaseRequestType>(ctx: TidyContext<REQ>): Promise<any> {
         const req = ctx._originReq
 
         for (const cat of _allCats) {
@@ -92,7 +92,7 @@ class CatEnvs {
 export function tidyBodyParser<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: BodyParserOptions) {
     const env = new CatEnvs(options)
 
-    return async function bodyParser(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<REQ>): TidyProcessReturnPromise<any> {
+    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<REQ>): TidyReturnPromise<any> {
         if (ctx.req.body === undefined && !ctx.disabled(tidyBodyParser.DISABLE_KEY)) {
             ctx.req.body = await env.parse(ctx)
         }

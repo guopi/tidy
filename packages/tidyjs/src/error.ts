@@ -1,5 +1,5 @@
 import http from 'http'
-import { AbstractResult, TextResult, TidyProcessReturn, TidyResult } from './result'
+import { AbstractResult, TextResult, TidyReturn, TidyResult } from './result'
 import { TidySimpleData } from './types'
 
 export interface TidyHttpError {
@@ -9,7 +9,7 @@ export interface TidyHttpError {
     text?: string
 }
 
-export function defaultErrorProcessor(err: any): TidyProcessReturn<any> {
+export function defaultErrorHandler(err: any): TidyReturn<any> {
     if (undefined == err)
         return undefined
 

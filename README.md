@@ -1,8 +1,11 @@
-# `tidyjs`
-> Tidy series modules, for more tidy web development
-> modules are built with Typescript, and support Javascript/Typescript usage
+# `Tidy Family`
+> Tidy family modules, born for more tidy web development, based on top of Node.js & Typescript.
 
-Goto [tidyjs module][tidyjs]  to start 
+Visit [tidyjs module][tidyjs] to start.
+
+## 
+All modules are built with Typescript, and preserves compatibility with JavaScript.
+
                                          
 ## Tidyjs & tidy processors
 | Module | Npm | Description |
@@ -20,7 +23,8 @@ Goto [tidyjs module][tidyjs]  to start
 | [tidy-path-tree] | [![tidy-path-tree-version]][tidy-path-tree-npm] | tidy path tree (used Prefix Tree/Trie Tree) library|
 | [tidy-util] | [![tidy-util-version]][tidy-util-npm] | tidy util library|
 
-
+## Tidy Example
+Goto [tidy-examples package](https://github.com/guopi/tidy/tree/master/packages/tidy-examples) for examples of using tidyjs and and related modules.
 
 [tidyjs]: https://github.com/guopi/tidy/tree/master/packages/tidyjs
 [tidyjs-version]: https://img.shields.io/npm/v/tidyjs.svg

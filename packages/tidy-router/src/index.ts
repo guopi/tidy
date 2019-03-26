@@ -1,4 +1,4 @@
-import { ErrorResult, TidyBaseRequestType, TidyProcessor, TidyProcessorLike, TidyProcessReturn } from 'tidyjs'
+import { ErrorResult, TidyBaseRequestType, TidyPlugin, TidyPluginLike, TidyReturn } from 'tidyjs'
 import { PathTree, PathTreeOptions, SimpleCache } from 'tidy-path-tree'
 import { parse } from 'url'
 import { isErrors, TidySchema, TypeOf, ValidateError } from 'tidy-json-schema'
@@ -7,18 +7,18 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'OPTIONS'
 export type HttpMethods = HttpMethod | HttpMethod[] | 'ALL'
 const _allHttpMethods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
 
-type ValidateErrorResultCreator = (errors: ValidateError[]) => TidyProcessReturn<any>
+type ValidateErrorResultCreator = (errors: ValidateError[]) => TidyReturn<any>
 
 export interface TidyRouterOptions extends PathTreeOptions {
     onValidateError?: ValidateErrorResultCreator
 }
 
-export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> implements TidyProcessorLike<REQ> {
+export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> implements TidyPluginLike<REQ> {
     private readonly _treeOpts: PathTreeOptions
     private _onValidateError: ValidateErrorResultCreator
 
     private _trees: {
-        [method: string]: PathTree<TidyProcessor<any>>
+        [method: string]: PathTree<TidyPlugin<any>>
     } = {}
 
     constructor(opts?: TidyRouterOptions) {
@@ -34,7 +34,7 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
         this._treeOpts.parseCache!.clear()
     }
 
-    asTidyProcessor(): TidyProcessor<REQ, REQ> {
+    asTidyPlugin(): TidyPlugin<REQ, REQ> {
         this.compact()
         return (ctx, next) => {
             const method = ctx.method.toUpperCase()
@@ -52,7 +52,7 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
         }
     }
 
-    private _tree(method: HttpMethod): PathTree<TidyProcessor<any>> {
+    private _tree(method: HttpMethod): PathTree<TidyPlugin<any>> {
         let tree = this._trees[method]
         if (!tree) {
             tree = new PathTree(this._treeOpts)
@@ -65,25 +65,25 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
         method: HttpMethods,
         path: string | string[],
         schema: S,
-        handler: TidyProcessor<TypeOf<S>>
+        handler: TidyPlugin<TypeOf<S>>
     ): this
 
     on<R extends TidyBaseRequestType = REQ>(
         method: HttpMethods,
         path: string | string[],
-        handler: TidyProcessor<R>
+        handler: TidyPlugin<R>
     ): this
 
     on(
         method: HttpMethods,
         path: string | string[],
-        schemaOrHandler: TidySchema<any> | TidyProcessor<any>,
-        handler?: TidyProcessor<any>
+        schemaOrHandler: TidySchema<any> | TidyPlugin<any>,
+        _handler?: TidyPlugin<any>
     ): this {
-        let processor: TidyProcessor<any>
-        if (handler) {
+        let handler: TidyPlugin<any>
+        if (_handler) {
             const schema: TidySchema<any> = schemaOrHandler as TidySchema<any>
-            processor = (ctx, next) => {
+            handler = (ctx, next) => {
                 const r = schema.validate(ctx.req, undefined)
                 if (isErrors(r)) {
                     return this._onValidateError(r)
@@ -92,24 +92,24 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
                 if (r !== undefined)
                     ctx.req = r.newValue
 
-                return handler(ctx, next)
+                return _handler(ctx, next)
             }
         } else {
-            processor = schemaOrHandler as TidyProcessor<any>
+            handler = schemaOrHandler as TidyPlugin<any>
         }
 
         if (method === 'ALL') method = _allHttpMethods
         if (Array.isArray(method)) {
             for (const m of method)
-                this._add(m, path, processor)
+                this._add(m, path, handler)
         } else {
-            this._add(method, path, processor)
+            this._add(method, path, handler)
         }
 
         return this
     }
 
-    private _add(method: HttpMethod, path: string | string[], handler: TidyProcessor<any>) {
+    private _add(method: HttpMethod, path: string | string[], handler: TidyPlugin<any>) {
         if (Array.isArray(path)) {
             for (const p of path) {
                 this._add(method, p, handler)
@@ -122,7 +122,7 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
     }
 }
 
-function _defaultOnValidateError(errors: ValidateError[]): TidyProcessReturn<any> {
+function _defaultOnValidateError(errors: ValidateError[]): TidyReturn<any> {
     return new ErrorResult({
         validate: errors
     })

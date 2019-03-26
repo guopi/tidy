@@ -1,9 +1,9 @@
 import { JsonResult, TidyServerApp } from 'tidyjs'
-import { tidyUploadProcessor } from 'tidy-upload'
+import { tidyUploadPlugin } from 'tidy-upload'
 import * as fs from 'fs'
 
 new TidyServerApp()
-    .use(tidyUploadProcessor())
+    .use(tidyUploadPlugin())
     .use(async ctx => {
         const req = ctx.req
         const path1 = (req.files!.file1! as any).path!

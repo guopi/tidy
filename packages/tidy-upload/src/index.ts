@@ -1,10 +1,10 @@
 import {
     NamedDict,
     TidyBaseRequestType,
-    TidyNextProcessor,
-    TidyProcessContext,
-    TidyProcessor,
-    TidyProcessReturnPromise
+    TidyNext,
+    TidyContext,
+    TidyPlugin,
+    TidyReturnPromise
 } from 'tidyjs'
 import http from 'http'
 import * as formidable from 'formidable'
@@ -21,12 +21,12 @@ export interface UploadOptions {
     onFileBegin?: (name: string, file: formidable.File) => void
 }
 
-export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: UploadOptions): TidyProcessor<REQ, WithFiles<REQ>> {
+export function tidyUploadPlugin<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: UploadOptions): TidyPlugin<REQ, WithFiles<REQ>> {
     const opts = options || {}
-    return async function cookieParser(ctx: TidyProcessContext<REQ>, next: TidyNextProcessor<WithFiles<REQ>>): TidyProcessReturnPromise<any> {
+    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithFiles<REQ>>): TidyReturnPromise<any> {
         const req = (ctx.req as WithFiles<REQ>)
         let files: TidyUploadFiles | undefined
-        if (req.files === undefined && !ctx.disabled(tidyUploadProcessor.DISABLE_KEY)) {
+        if (req.files === undefined && !ctx.disabled(tidyUploadPlugin.DISABLE_KEY)) {
             if (ctx.method.toUpperCase() === 'POST' && ctx.is('multipart/*')) {
                 const parsed = await _parseForm(ctx._originReq, opts)
                 req.files = files = parsed.files
@@ -37,7 +37,7 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
         const deletable = _deletableFilePaths(files)
         if (deletable) {
             try {
-                return Promise.resolve(next(ctx as TidyProcessContext<WithFiles<REQ>>))
+                return Promise.resolve(next(ctx as TidyContext<WithFiles<REQ>>))
             } finally {
                 _deleteFiles(deletable)
                     .then(errors => {
@@ -56,12 +56,12 @@ export function tidyUploadProcessor<REQ extends TidyBaseRequestType = TidyBaseRe
                     })
             }
         } else {
-            return next(ctx as TidyProcessContext<WithFiles<REQ>>)
+            return next(ctx as TidyContext<WithFiles<REQ>>)
         }
     }
 }
 
-tidyUploadProcessor.DISABLE_KEY = 'upload'
+tidyUploadPlugin.DISABLE_KEY = 'upload'
 
 function _errorMessage(err: any) {
     if (err instanceof Error)
