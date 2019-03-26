@@ -1,5 +1,4 @@
-import { createParser } from '../src/grammar'
-import { Myna as m } from 'myna-parser'
+import { createParser, PathAstNode } from '../src/grammar'
 import { PathTree } from '../src/tree'
 
 function testParser() {
@@ -51,7 +50,7 @@ function indent(level: number): string {
     return ret
 }
 
-function showAst(node: m.AstNode | undefined | null, level: number = 0) {
+function showAst(node: PathAstNode | undefined | null, level: number = 0) {
     if (!node)
         return
 
