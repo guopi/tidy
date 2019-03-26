@@ -198,50 +198,6 @@ namespace myna {
         type: string;
         name: string;
         rules: Rule[];
-        // grammarName: string;
-        // className: string;
-        // _createAstNode: boolean;
-        // parser: (ParseState: any) => boolean;
-        // lexer: (ParseState: any) => boolean;
-        //
-        // node(text?: string, ...children: any[]): AstNode;
-        //
-        // parse(s: string): AstNode;
-        //
-        // setName(grammarName: string, ruleName: string): Rule;
-        //
-        // readonly definition: string;
-        // readonly fullName: string;
-        // readonly nameOrDefinition: string;
-        //
-        // toString(): string;
-        //
-        // readonly firstChild: Rule;
-        //
-        // setType(type: string): Rule;
-        //
-        // cloneImplementation(): Rule;
-        //
-        // readonly copy: Rule;
-        // readonly hasAstChildRule: boolean;
-        // readonly createsAstNode: boolean;
-        // readonly nonAdvancing: boolean;
-        //
-        // astRuleDefn(inSeq?: boolean, inChoice?: boolean): string;
-        //
-        // astRuleNameOrDefn(inSeq?: boolean, inChoice?: boolean): string;
-        //
-        // readonly opt: Rule;
-        // readonly zeroOrMore: Rule;
-        // readonly oneOrMore: Rule;
-        // readonly at: Rule;
-        // readonly not: Rule;
-        // readonly advance: Rule;
-        // readonly ws: Rule;
-        // readonly all: Rule;
-        // readonly end: Rule;
-        // readonly assert: Rule;
-        // readonly ast: Rule;
     }
 
     export interface AstNode {
@@ -250,16 +206,6 @@ namespace myna {
         start: number;
         end: number;
         children: AstNode[];
-        // readonly name: string;
-        // readonly fullName: string;
-        // readonly allText: string;
-        // readonly isLeaf: boolean;
-        // child(name: string): AstNode;
-        // readonly _firstChildStart: number;
-        // readonly _lastChildEnd: number;
-        // readonly beforeChildrenText: string;
-        // readonly afterChildrenText: string;
-        // readonly allChildrenText: string;
     }
 }
 export type PathAstNode = myna.AstNode
