@@ -1,53 +1,53 @@
 # `tidyjs`
+> Tidy series modules, for more tidy web development
+> modules are built with Typescript, and support Javascript/Typescript usage
 
-```js
-import { ServerApp } from 'tidyjs'
-
-const app = new ServerApp()
-
-app.onGet('/', input => {
-    return {
-       message: `Hello ${input.query.my_name || 'world'}, I am tidyjs`,
-    }
-})
-
-app.listen(3000)
-```
-
-## Introduction
-tidyjs is tidy Node.js framework for building server-side applications on top of TypeScript & JavaScript.
-
-tidyjs uses modern JavaScript, is built with TypeScript (preserves compatibility with pure JavaScript).
-
-Under the hood, tidyjs makes use of [Express](https://github.com/expressjs/express), but hide it's details
-
-## EcoSystem
-| Project | Status | Description |
+Goto [tidyjs module][tidyjs]  to start 
+                                         
+## Tidyjs & tidy processors
+| Module | Npm | Description |
 |---------|--------|-------------|
-| [tidyjs] | ![tidyjs-version] | core project|
-| [tidy-cookie] | ![tidy-cookie-version] | core project|
-| [tidy-upload] | ![tidy-upload-version] | core project|
-
-## Installation
-```
-npm i tidyjs --save
-```
-Or
-```
-yarn add tidyjs
-```
+| [tidyjs] | [![tidyjs-version]][tidyjs-npm] | core module of server app for Node.js|
+| [tidy-router] | [![tidy-router-version]][tidy-router-npm] | tidy processor to support route |
+| [tidy-cookie] | [![tidy-cookie-version]][tidy-cookie-npm] | tidy processor to parse cookie|
+| [tidy-upload] | [![tidy-upload-version]][tidy-upload-npm] | tidy processor to support routing|
 
 
-
-
+## Tidy library module
+| Module | Npm | Description |
+|---------|--------|-------------|
+| [tidy-json-schema] | [![tidy-json-schema-version]][tidy-json-schema-npm] | tidy json schema validate library|
+| [tidy-path-tree] | [![tidy-path-tree-version]][tidy-path-tree-npm] | tidy path tree (used Prefix Tree/Trie Tree) library|
+| [tidy-util] | [![tidy-util-version]][tidy-util-npm] | tidy util library|
 
 
 
 [tidyjs]: https://github.com/guopi/tidy/tree/master/packages/tidyjs
 [tidyjs-version]: https://img.shields.io/npm/v/tidyjs.svg
+[tidyjs-npm]: https://www.npmjs.com/package/tidyjs
+
+[tidy-router]: https://github.com/guopi/tidy/tree/master/packages/tidy-router
+[tidy-router-version]: https://img.shields.io/npm/v/tidy-router.svg
+[tidy-router-npm]: https://www.npmjs.com/package/tidy-router
 
 [tidy-cookie]: https://github.com/guopi/tidy/tree/master/packages/tidy-cookie
 [tidy-cookie-version]: https://img.shields.io/npm/v/tidy-cookie.svg
+[tidy-cookie-npm]: https://www.npmjs.com/package/tidy-cookie
 
 [tidy-upload]: https://github.com/guopi/tidy/tree/master/packages/tidy-upload
 [tidy-upload-version]: https://img.shields.io/npm/v/tidy-upload.svg
+[tidy-upload-npm]: https://www.npmjs.com/package/tidy-upload
+
+[tidy-json-schema]: https://github.com/guopi/tidy/tree/master/packages/tidy-json-schema
+[tidy-json-schema-version]: https://img.shields.io/npm/v/tidy-json-schema.svg
+[tidy-json-schema-npm]: https://www.npmjs.com/package/tidy-json-schema
+
+[tidy-path-tree]: https://github.com/guopi/tidy/tree/master/packages/tidy-path-tree
+[tidy-path-tree-version]: https://img.shields.io/npm/v/tidy-path-tree.svg
+[tidy-path-tree-npm]: https://www.npmjs.com/package/path-tree-util
+
+[tidy-util]: https://github.com/guopi/tidy/tree/master/packages/tidy-util
+[tidy-util-version]: https://img.shields.io/npm/v/tidy-util.svg
+[tidy-util-npm]: https://www.npmjs.com/package/tidy-util
+
+

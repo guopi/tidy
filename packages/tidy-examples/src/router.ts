@@ -8,16 +8,17 @@ const router = new TidyRouter<any>()
             req: ctx.req
         }
     })
-    .on('GET', '/test2/:ver/:count', tjs.obj({
-        params: tjs.obj({
-            ver: tjs.str(),
-            count: tjs.int().max(100),
+    .on('GET', '/test2/:ver/:count',
+        tjs.obj({
+            params: tjs.obj({
+                ver: tjs.str(),
+                count: tjs.int().max(100),
+            })
+        }), ctx => {
+            return {
+                req: ctx.req
+            }
         })
-    }), ctx => {
-        return {
-            req: ctx.req
-        }
-    })
 
 new TidyServerApp()
     .use(router)
