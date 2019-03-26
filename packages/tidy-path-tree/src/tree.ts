@@ -1,8 +1,9 @@
 import { Cache, PathParams } from './types'
 import { SimpleCache } from './cache'
 import { PathNode } from './node'
-import { createParser, PathAstNode } from './grammar'
+import { createParser } from './grammar'
 import { PathError } from './error'
+import { PathAstNode } from './myna'
 
 const _RE_HasDynamic = /[:(*]/
 

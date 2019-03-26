@@ -1,5 +1,6 @@
-import { createParser, PathAstNode } from '../src/grammar'
+import { createParser } from '../src/grammar'
 import { PathTree } from '../src/tree'
+import { PathAstNode } from '../src/myna'
 
 function testParser() {
     let path: string

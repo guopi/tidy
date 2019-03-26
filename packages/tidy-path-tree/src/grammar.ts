@@ -1,5 +1,7 @@
 // import { Myna as m } from 'myna-parser'
 // for type define error of myna-parser
+import { PathAstNode } from './myna'
+
 const m = require('myna-parser')
 
 type Char = string
@@ -193,19 +195,3 @@ export function escapeTextToRegexStr(text: string, prefix?: string) {
     }
 }
 
-namespace myna {
-    interface Rule {
-        type: string;
-        name: string;
-        rules: Rule[];
-    }
-
-    export interface AstNode {
-        rule: Rule;
-        input: string;
-        start: number;
-        end: number;
-        children: AstNode[];
-    }
-}
-export type PathAstNode = myna.AstNode

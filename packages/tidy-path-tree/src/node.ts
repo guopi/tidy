@@ -3,10 +3,10 @@ import {
     CHARCODE_QUESTIONMARK,
     DEFAULT_PARAM_PATTERN,
     escapeTextToRegexStr,
-    PathAstNode,
     PathGrammarType
 } from './grammar'
 import { PathError } from './error'
+import { PathAstNode } from './myna'
 
 type Char = string
 
