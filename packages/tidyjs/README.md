@@ -7,10 +7,9 @@ Born for more tidy development of building server-side applications on top of No
 - **Full async support** : 
 - **Routing support type and schema** : 
 - **Extensible** : plugin system
-- High performance
-    routing use used Prefix Tree
-- Logging: we choose [Pino](https://github.com/pinojs/pino), a very low overhead logger
-- Clean and solid code style
+- **High performance** : routing use used Prefix Tree
+- **Logging**: we choose [Pino](https://github.com/pinojs/pino), a very low overhead logger
+- **Clean and solid code style** : 
     type safe & error
 
 ## Installation
@@ -23,24 +22,20 @@ Node.js >= 8.0.0 required
 ```js
 import { TidyServerApp } from 'tidyjs'
 
-const app = new TidyServerApp()
-app.use(ctx => {
-    return {
-       message: `Hello ${input.query.my_name || 'world'}, I am tidyjs`,
-    }
-})
-app.listen(3000)
-
+new TidyServerApp()
+    .use(ctx => {
+        return {
+           message: `Hello ${ctx.req.query.my_name || 'world'}, I am tidyjs`,
+        }
+    })
+    .listen(3000)
 ```
 Node.js >= 8.0.0 required.
 
-## Docs
-
-## Examples
-See [tidy-examples]
-
+## [Docs](https://github.com/guopi/tidy/wiki)
+## [Examples](https://github.com/guopi/tidy/tree/master/packages/tidy-examples)
 ## License
 [MIT]
 
+
 [MIT]: https://github.com/guopi/tidy/blob/master/LICENSE
-[tidy-examples]: https://github.com/guopi/tidy/tree/master/packages/tidy-examples
