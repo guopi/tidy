@@ -3,17 +3,19 @@
 
 Visit [tidyjs module][tidyjs] to start.
 
+Visit [Tidy Family Docs](https://github.com/guopi/tidy/wiki) 
+
 ## 
 All modules are built with Typescript, and preserves compatibility with JavaScript.
 
                                          
-## Tidyjs & tidy processors
+## Tidyjs & tidy plugins
 | Module | Npm | Description |
 |---------|--------|-------------|
 | [tidyjs] | [![tidyjs-version]][tidyjs-npm] | core module of server app for Node.js|
-| [tidy-router] | [![tidy-router-version]][tidy-router-npm] | tidy processor to support route |
-| [tidy-cookie] | [![tidy-cookie-version]][tidy-cookie-npm] | tidy processor to parse cookie|
-| [tidy-upload] | [![tidy-upload-version]][tidy-upload-npm] | tidy processor to support routing|
+| [tidy-router] | [![tidy-router-version]][tidy-router-npm] | plugin to support route |
+| [tidy-cookie] | [![tidy-cookie-version]][tidy-cookie-npm] | plugin to parse cookie|
+| [tidy-upload] | [![tidy-upload-version]][tidy-upload-npm] | plugin to support routing|
 
 
 ## Tidy library module
@@ -48,7 +50,7 @@ Goto [tidy-examples package](https://github.com/guopi/tidy/tree/master/packages/
 
 [tidy-path-tree]: https://github.com/guopi/tidy/tree/master/packages/tidy-path-tree
 [tidy-path-tree-version]: https://img.shields.io/npm/v/tidy-path-tree.svg
-[tidy-path-tree-npm]: https://www.npmjs.com/package/path-tree-util
+[tidy-path-tree-npm]: https://www.npmjs.com/package/tidy-path-tree
 
 [tidy-util]: https://github.com/guopi/tidy/tree/master/packages/tidy-util
 [tidy-util-version]: https://img.shields.io/npm/v/tidy-util.svg

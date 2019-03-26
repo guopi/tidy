@@ -1,14 +1,13 @@
 # `tidy-cookie`
-
-> tidy processor to parse cookies
+> tidy plugin to parse cookies
 
 ## Usage
 
 ```typescript
-import { cookieParser } from 'tidy-cookie'
+import { tidyCookieParser } from 'tidy-cookie'
 import { TidyServerApp } from 'tidyjs'
 new TidyServerApp()
-    .use(cookieParser())
+    .use(tidyCookieParser())
     .listen(3000)
 ```
 
