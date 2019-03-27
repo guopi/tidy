@@ -1,10 +1,5 @@
 import { Cache, PathParams } from './types'
-import {
-    CHARCODE_QUESTIONMARK,
-    DEFAULT_PARAM_PATTERN,
-    escapeTextToRegexStr,
-    PathGrammarType
-} from './grammar'
+import { CHARCODE_QUESTIONMARK, DEFAULT_PARAM_PATTERN, escapeTextToRegexStr, PathGrammarType } from './grammar'
 import { PathError } from './error'
 import { PathAstNode } from './myna'
 

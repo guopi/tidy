@@ -1,4 +1,4 @@
-import { ErrorResult, TidyBaseRequestType, TidyPlugin, TidyPluginLike, TidyReturn } from 'tidyjs'
+import { ErrorResult, TidyBaseRequestType, TidyBaseResponseType, TidyPlugin, TidyPluginLike, TidyReturn } from 'tidyjs'
 import { PathTree, PathTreeOptions, SimpleCache } from 'tidy-path-tree'
 import { parse } from 'url'
 import { isErrors, TidySchema, TypeOf, ValidateError } from 'tidy-json-schema'
@@ -11,6 +11,17 @@ type ValidateErrorResultCreator = (errors: ValidateError[]) => TidyReturn<any>
 
 export interface TidyRouterOptions extends PathTreeOptions {
     onValidateError?: ValidateErrorResultCreator
+}
+
+export interface ApiInterface<REQ extends TidyBaseRequestType = TidyBaseRequestType,
+    RESP extends TidyBaseResponseType | undefined = TidyBaseResponseType> {
+    req: REQ
+    resp?: RESP
+}
+
+export interface ApiSchema {
+    req: TidySchema<any>
+    resp?: TidySchema<any>
 }
 
 export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> implements TidyPluginLike<REQ> {
