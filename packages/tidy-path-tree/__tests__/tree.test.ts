@@ -46,3 +46,16 @@ test('PathTree', (t) => {
 
     t.end()
 })
+
+test('PathTree.globstar', t => {
+    let tree = new PathTree<string | undefined>()
+    const path = 'a/**'
+    const data = 'globstar data'
+    tree.add(path, data)
+    t.deepEquals(tree.find('a/b1/b2'), {
+        data: data,
+        params: {}
+    })
+
+    t.end()
+})

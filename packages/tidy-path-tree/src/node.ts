@@ -34,6 +34,7 @@ export class PathNode {
 
     subs?: PathNode[]
     _statics?: { [text: string]: PathNode }
+    _globstar?: PathNode    // end node of "p1/p2/**"
     _path?: string      // mounted path
     _data?: any         // mounted _data
 
@@ -104,7 +105,13 @@ export class PathNode {
         const text = newSub.raw
         let ret = newSub
 
-        if (!this._statics) {
+        if (newSub.raw === '**') {
+            if (!lastLayer)
+                throw new PathError(`path ${ctx.path} is invalid format: **(globstar) must be at the end`)
+            if (this._globstar)
+                throw new PathError(`path ${ctx.path} is already added`)
+            this._globstar = newSub
+        } else if (!this._statics) {
             this._statics = { [text]: newSub }
         } else {
             const found = this._statics[text]
@@ -175,34 +182,34 @@ export class PathNode {
         if (staticFound !== undefined)
             return staticFound
 
-        if (!this.subs || !this.subs.length)
-            return undefined
+        if (this.subs) {
+            const layer = ctx.layers[index]
+            const isLast = index >= ctx.layers.length - 1
 
-        const layer = ctx.layers[index]
-        const isLast = index >= ctx.layers.length - 1
+            for (const sub of this.subs) {
+                if (!sub.reObj)
+                    continue
 
-        for (const sub of this.subs) {
-            if (!sub.reObj)
-                continue
+                const matched = sub.reObj.exec(layer)
+                if (matched) {
+                    if (isLast) {
+                        if (!sub.mounted())
+                            return undefined
 
-            const matched = sub.reObj.exec(layer)
-            if (matched) {
-                if (isLast) {
-                    if (!sub.mounted())
-                        return undefined
+                        sub._buildParams(matched, ctx.params)
 
-                    sub._buildParams(matched, ctx.params)
+                        return sub
+                    }
 
-                    return sub
+                    let nextFound = sub.find(index + 1, ctx)
+                    if (nextFound) {
+                        sub._buildParams(matched, ctx.params)
+                    }
+                    return nextFound
                 }
-
-                let nextFound = sub.find(index + 1, ctx)
-                if (nextFound) {
-                    sub._buildParams(matched, ctx.params)
-                }
-                return nextFound
             }
         }
+        return this._globstar
     }
 
     private _buildParams(matched: RegExpExecArray, toParams: PathParams) {

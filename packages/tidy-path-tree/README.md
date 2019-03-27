@@ -27,10 +27,12 @@ const found = tree.find('/a/b/tidy')
 
 ## Path Grammar
 ```yaml
-    Path:  Layer  ( Layer Delimiter )*
+    Path:  Layer  ( Layer Delimiter )*  GlobStarEnd?
     
     Layer: Seg*
     Seg: Param  |  Text  |  ReGroup
+    
+    GlobStarEnd: Delimiter "**"
     
     ReGroup: "("  <RegularExpressBody>  ")"
     
@@ -47,6 +49,7 @@ const found = tree.find('/a/b/tidy')
 - /
 - /part1
 - /part1/part2/
+- /part1/part2/**
 - /test/:name/:type
 - /test/:country([a-z]+)/:name([a-z]+)?/:code?([0-9]+)
 
