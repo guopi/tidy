@@ -2,15 +2,13 @@
 Born for more tidy development of building server-side applications on top of Node.js & Typescript.
 
 ## Features
-- **Developer friendly** : full Typescript support
-- **Separation of business logic and web protocol** :
-- **Full async support** : 
-- **Routing support type and schema** : 
-- **Extensible** : plugin system
-- **High performance** : routing use used Prefix Tree
-- **Logging**: we choose [Pino](https://github.com/pinojs/pino), a very low overhead logger
-- **Clean and solid code style** : 
-    type safe & error
+- **Extensible** : powerful and simple plugin system
+- **Developer friendly** : full Typescript support, and built to be very expressive.
+- **Clean business logic** : use pure function, separated from web protocol
+- **Full async support** : take advantage of the new async/await syntax
+- **Routing support type and schema** : we can easily build strongly typed interfaces.
+- **High performance routing** : use used Prefix Tree, when there are a lot of routes, lookup performance can be greatly improved
+- **Clean and solid code** : with type Typescript strict mode, and async/await catch all errors and exceptions
 
 ## Installation
 ```bash
@@ -30,12 +28,32 @@ new TidyServerApp()
     })
     .listen(3000)
 ```
-Node.js >= 8.0.0 required.
+## Docs
+- [Tidy Family](https://github.com/guopi/tidy/wiki)
+- [Overview](https://github.com/guopi/tidy/tidyjs:Overview)
+- [Getting Started](https://github.com/guopi/tidy/wiki/tidyjs:Getting-Started)
+- [Core Concepts](https://github.com/guopi/tidy/wiki/tidyjs:Core-Concepts)
+- [Plugins](https://github.com/guopi/tidy/wiki/tidyjs:Plugins)
+- [Router](https://github.com/guopi/tidy/wiki/tidy-router)
+- [Logging](https://github.com/guopi/tidy/wiki/tidyjs:Logging)
+    
+## [Examples]
+[code on github](https://github.com/guopi/tidy/tree/master/packages/tidy-examples)
 
-## [Docs](https://github.com/guopi/tidy/wiki)
-## [Examples](https://github.com/guopi/tidy/tree/master/packages/tidy-examples)
 ## License
 [MIT]
 
 
 [MIT]: https://github.com/guopi/tidy/blob/master/LICENSE
+
+[tidy-router]: https://github.com/guopi/tidy/tree/master/packages/tidy-router
+[tidy-router-version]: https://img.shields.io/npm/v/tidy-router.svg
+[tidy-router-npm]: https://www.npmjs.com/package/tidy-router
+
+[tidy-cookie]: https://github.com/guopi/tidy/tree/master/packages/tidy-cookie
+[tidy-cookie-version]: https://img.shields.io/npm/v/tidy-cookie.svg
+[tidy-cookie-npm]: https://www.npmjs.com/package/tidy-cookie
+
+[tidy-upload]: https://github.com/guopi/tidy/tree/master/packages/tidy-upload
+[tidy-upload-version]: https://img.shields.io/npm/v/tidy-upload.svg
+[tidy-upload-npm]: https://www.npmjs.com/package/tidy-upload
