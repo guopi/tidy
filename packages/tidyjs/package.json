@@ -1,5 +1,5 @@
 {
-    "version": "1.0.16",
+    "version": "1.0.17",
     "name": "tidyjs",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -33,7 +33,7 @@
         "@types/co-body": "^0.0.3",
         "@types/qs": "^6.5.2",
         "@types/type-is": "^1.6.2",
-        "tidy-dev-tools": "^1.0.4"
+        "tidy-dev-tools": "^1.0.5"
     },
     "gitHead": "a68bdbaf6c3afbd59c7ccce54a3248e90a340f46"
 }

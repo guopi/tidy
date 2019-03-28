@@ -1,10 +1,10 @@
 {
     "name": "tidy-json-schema",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "main": "./lib/index.cjs.js",
     "license": "MIT",
     "devDependencies": {
-        "tidy-dev-tools": "^1.0.4"
+        "tidy-dev-tools": "^1.0.5"
     },
     "author": "guopi <guopi.pro@gmail.com>",
     "description": "tidy-json-schema",

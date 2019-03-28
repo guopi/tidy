@@ -1,5 +1,5 @@
 {
-    "version": "1.0.17",
+    "version": "1.0.18",
     "name": "tidy-upload",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -25,10 +25,10 @@
     "dependencies": {
         "co-busboy": "^1.4.0",
         "formidable": "^1.2.1",
-        "tidyjs": "^1.0.16"
+        "tidyjs": "^1.0.17"
     },
     "devDependencies": {
         "@types/formidable": "^1.0.31",
-        "tidy-dev-tools": "^1.0.4"
+        "tidy-dev-tools": "^1.0.5"
     }
 }
