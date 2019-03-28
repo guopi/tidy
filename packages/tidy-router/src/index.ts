@@ -1,4 +1,13 @@
-import { ErrorResult, TidyBaseRequestType, TidyBaseResponseType, TidyPlugin, TidyPluginLike, TidyReturn } from 'tidyjs'
+import {
+    ErrorResult,
+    TidyBaseRequestType,
+    TidyBaseResponseType,
+    TidyContext,
+    TidyNext,
+    TidyPlugin,
+    TidyPluginLike,
+    TidyReturn
+} from 'tidyjs'
 import { PathTree, PathTreeOptions, SimpleCache } from 'tidy-path-tree'
 import { parse } from 'url'
 import { isErrors, TidySchema, TypeOf, ValidateError } from 'tidy-json-schema'
@@ -19,10 +28,16 @@ export interface ApiInterface<REQ extends TidyBaseRequestType = TidyBaseRequestT
     resp?: RESP
 }
 
+type ApiRespTypeOf<T> = T extends { resp?: any } ? T['resp'] : any
+type ApiHandler<API extends ApiInterface> = (ctx: TidyContext<API['req']>, next: TidyNext<ApiRespTypeOf<API> | API['req']>) => TidyReturn<ApiRespTypeOf<API>>
+
 export interface ApiSchema {
     req: TidySchema<any>
     resp?: TidySchema<any>
 }
+
+type SchemaRespTypeOf<T> = T extends { resp: TidySchema<any> } ? TypeOf<T['resp']> : any
+type SchemaHandler<S extends ApiSchema> = (ctx: TidyContext<TypeOf<S['req']>>, next: TidyNext<SchemaRespTypeOf<S> | TypeOf<S['req']>>) => TidyReturn<SchemaRespTypeOf<S>>
 
 export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> implements TidyPluginLike<REQ> {
     private readonly _treeOpts: PathTreeOptions
@@ -72,30 +87,34 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
         return tree
     }
 
-    on<S extends TidySchema<any>>(
+    on<API extends ApiInterface = { req: TidyBaseRequestType }>(
         method: HttpMethods,
         path: string | string[],
+        handler: ApiHandler<API>
+    ): this
+
+    on<S extends ApiSchema>(
         schema: S,
-        handler: TidyPlugin<TypeOf<S>>
-    ): this
-
-    on<R extends TidyBaseRequestType = REQ>(
         method: HttpMethods,
         path: string | string[],
-        handler: TidyPlugin<R>
+        handler: SchemaHandler<S>
     ): this
 
-    on(
-        method: HttpMethods,
-        path: string | string[],
-        schemaOrHandler: TidySchema<any> | TidyPlugin<any>,
-        _handler?: TidyPlugin<any>
-    ): this {
+    on(..._args: [ApiSchema, HttpMethods, string | string[], SchemaHandler<any>] | [HttpMethods, string | string[], ApiHandler<any>]): this {
+        let method: HttpMethods
+        let path: string | string[]
         let handler: TidyPlugin<any>
-        if (_handler) {
-            const schema: TidySchema<any> = schemaOrHandler as TidySchema<any>
+
+        if (_args[3] !== undefined) {
+            const args = _args as [ApiSchema, HttpMethods, string | string[], SchemaHandler<any>]
+
+            method = args[1]
+            path = args[2]
+            const schema = args[0]
+            const orgHandler = args[3]
+
             handler = (ctx, next) => {
-                const r = schema.validate(ctx.req, undefined)
+                const r = schema.req.validate(ctx.req, undefined)
                 if (isErrors(r)) {
                     return this._onValidateError(r)
                 }
@@ -103,10 +122,13 @@ export class TidyRouter<REQ extends TidyBaseRequestType = TidyBaseRequestType> i
                 if (r !== undefined)
                     ctx.req = r.newValue
 
-                return _handler(ctx, next)
+                return orgHandler(ctx, next)
             }
         } else {
-            handler = schemaOrHandler as TidyPlugin<any>
+            const args = _args as [HttpMethods, string | string[], ApiHandler<any>]
+            method = args[0]
+            path = args[1]
+            handler = args[2]
         }
 
         if (method === 'ALL') method = _allHttpMethods
