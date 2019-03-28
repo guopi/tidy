@@ -24,7 +24,7 @@ export interface TidySchema<T extends JsonData> {
      * @returns WithNewValue<T> : value converted
      * @returns ValidateError[] : validate failed
      */
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<T>
+    validate(value: any, parentPath?: string[]): ValidateResult<T>
 
     opt(): TidySchema<T | undefined>
 

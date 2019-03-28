@@ -40,9 +40,9 @@ abstract class AbstractSchema<T extends JsonData> implements TidySchema<T> {
         return false
     }
 
-    abstract validate(value: any, parentPath: string[] | undefined): ValidateResult<T>
+    abstract validate(value: any, parentPath?: string[]): ValidateResult<T>
 
-    protected _typeErrors(value: any, parentPath: string[] | undefined): ValidateError[] {
+    protected _typeErrors(value: any, parentPath?: string[]): ValidateError[] {
         return [{
             path: parentPath,
             code: ErrorCodes.ErrorType,
@@ -97,7 +97,7 @@ abstract class BaseSchema<T extends JsonData> extends AbstractSchema<T> {
         return value
     }
 
-    protected _checkRules(value: T, parentPath: string[] | undefined): ValidateError[] | undefined {
+    protected _checkRules(value: T, parentPath?: string[]): ValidateError[] | undefined {
         let errors: ValidateError[] | undefined = undefined
         const rules = this._rules
         if (rules) {
@@ -112,7 +112,7 @@ abstract class BaseSchema<T extends JsonData> extends AbstractSchema<T> {
         return errors
     }
 
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<T> {
+    validate(value: any, parentPath?: string[]): ValidateResult<T> {
         const typeResult = this._checkType(value)
         let newValue: T
         if (typeResult === undefined) {
@@ -159,7 +159,7 @@ class UndefinedSchema extends AbstractSchema<undefined> {
         return this
     }
 
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<undefined> | undefined {
+    validate(value: any, parentPath?: string[]): ValidateResult<undefined> | undefined {
         return value !== undefined ? undefined : this._typeErrors(value, parentPath)
     }
 }
@@ -173,7 +173,7 @@ class NullSchema extends AbstractSchema<null> {
         return this
     }
 
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<null> | undefined {
+    validate(value: any, parentPath?: string[]): ValidateResult<null> | undefined {
         return value !== null ? undefined : this._typeErrors(value, parentPath)
     }
 }
@@ -585,7 +585,7 @@ class OrNullSchema<T extends JsonData> extends AbstractSchema<T | null> {
         return this.type.typeName() + ' | null'
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T> {
+    validate(originValue: any, parentPath?: string[]): ValidateResult<T> {
         if (originValue === null)
             return undefined
         return this.type.validate(originValue, parentPath)
@@ -609,7 +609,7 @@ class OptSchema<T extends JsonData> extends AbstractSchema<T | undefined> {
         return this
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T> {
+    validate(originValue: any, parentPath?: string[]): ValidateResult<T> {
         if (originValue === undefined)
             return undefined
         return this.type.validate(originValue, parentPath)
@@ -625,7 +625,7 @@ class OrSchema<T1 extends JsonData, T2 extends JsonData> extends AbstractSchema<
         return `( ${this.type1.typeName()} | ${this.type2.typeName()})`
     }
 
-    validate(originValue: any, parentPath: string[] | undefined): ValidateResult<T1 | T2> {
+    validate(originValue: any, parentPath?: string[]): ValidateResult<T1 | T2> {
         const r1 = this.type1.validate(originValue, parentPath)
         if (r1 === undefined || isNewValue(r1))
             return r1
@@ -648,7 +648,7 @@ class AndSchema<T1 extends JsonData, T2 extends JsonData> extends AbstractSchema
         return `${this.type1.typeName()} & ${this.type2.typeName()}`
     }
 
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<T1 & T2> {
+    validate(value: any, parentPath?: string[]): ValidateResult<T1 & T2> {
         const r1 = this.type1.validate(value, parentPath)
         let newValue = value
         let errors: ValidateError[] | undefined
@@ -696,12 +696,12 @@ class AnySchema implements TidySchema<any> {
         return 'any'
     }
 
-    validate(value: any, parentPath: string[] | undefined): ValidateResult<any> {
+    validate(value: any, parentPath?: string[]): ValidateResult<any> {
         return undefined
     }
 }
 
-function prependParentToErrors(errors: ValidateError | ValidateError[], parentPath: string[] | undefined) {
+function prependParentToErrors(errors: ValidateError | ValidateError[], parentPath?: string[]) {
     if (parentPath) {
         if (Array.isArray(errors)) {
             for (const e of errors) {
