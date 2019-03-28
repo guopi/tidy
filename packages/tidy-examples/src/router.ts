@@ -1,4 +1,4 @@
-import { TidyServerApp } from 'tidyjs'
+import { tidyBodyParser, TidyServerApp } from 'tidyjs'
 import { TidyRouter } from 'tidy-router'
 import { tjs } from 'tidy-json-schema'
 
@@ -21,11 +21,31 @@ const router = new TidyRouter<any>()
                 req: ctx.req
             }
         })
+    .on<{
+        req: {
+            body: {
+                a: string,
+                b?: number
+            }
+        }
+        resp: {
+            body: {
+                c: string
+            }
+        }
+    }>('POST', '/test3', ctx => {
+        return {
+            c: ctx.req.body.a + ctx.req.body.b || '0'
+        }
+    })
 
 new TidyServerApp()
+    .use(tidyBodyParser())
     .use(router)
     .listen(3000)
 
 console.log(`router example started. test command:
 \thttp get :3000/test/tidy/value1
+\thttp get :3000/test2/tidy/99
+\thttp -v post :3000/test3 a=string_a b=123
 `)

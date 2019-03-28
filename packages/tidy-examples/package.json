@@ -12,7 +12,7 @@
     },
     "scripts": {
         "build": "tsc",
-        "run-ts": "ts-node --files "
+        "ts": "ts-node --files "
     },
     "bugs": {
         "url": "https://github.com/guopi/tidy/issues"
