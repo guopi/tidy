@@ -15,7 +15,7 @@ All modules are built with Typescript, and preserves compatibility with JavaScri
 | [tidyjs] | [![tidyjs-version]][tidyjs-npm] | core module of server app for Node.js|
 | [tidy-router] | [![tidy-router-version]][tidy-router-npm] | plugin to support route |
 | [tidy-cookie] | [![tidy-cookie-version]][tidy-cookie-npm] | plugin to parse cookie|
-| [tidy-upload] | [![tidy-upload-version]][tidy-upload-npm] | plugin to support routing|
+| [tidy-upload] | [![tidy-upload-version]][tidy-upload-npm] | plugin to support file upload|
 
 
 ## Tidy library module

@@ -2,24 +2,60 @@
 
 > tidy router used tidy-path-tree
 
+## Installation
+```bash
+$ npm install tidy-router --save
+```
+
 ## Usage
 
 ```typescript
 // for typescript
 
-import { TidyServerApp } from 'tidyjs'
+import { tidyBodyParser, TidyServerApp } from 'tidyjs'
 import { TidyRouter } from 'tidy-router'
+import { tjs } from 'tidy-json-schema'
 
-const app = new TidyServerApp()
-const router = new TidyRouter()
-router.on('GET','/a/b/:name', ctx => {
-    return {
-        text : 'hello router'
-    }
-})
+const router = new TidyRouter<any>()
+    .on('GET', '/test/:name/:value', ctx => {
+        return {
+            req: ctx.req
+        }
+    })
+    .on({
+            req: tjs.obj({
+                params: tjs.obj({
+                    ver: tjs.str(),
+                    count: tjs.int().max(100),
+                })
+            })
+        },
+        'GET', '/test2/:ver/:count', ctx => {
+            return {
+                req: ctx.req
+            }
+        })
+    .on<{
+        req: {
+            body: {
+                a: string,
+                b?: number
+            }
+        }
+        resp: {
+            body: {
+                c: string
+            }
+        }
+    }>('POST', '/test3', ctx => {
+        return {
+            c: ctx.req.body.a + ctx.req.body.b || '0'
+        }
+    })
 
-app.use(router)
-
-app.listen()
+new TidyServerApp()
+    .use(tidyBodyParser())
+    .use(router)
+    .listen(3000)
 ```
 

@@ -2,6 +2,11 @@
 
 > Path tree that used Prefix Tree(Trie Tree)
 
+## Installation
+```bash
+$ npm install tidy-path-tree --save
+```
+
 ## Usage
 
 ```typescript
