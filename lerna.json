@@ -8,8 +8,7 @@
         "publish": {
             "ignoreChanges": [
                 "__tests__/**",
-                "*.txt",
-                "*.md"
+                "*.txt"
             ],
             "message": "chore(release): publish"
         }

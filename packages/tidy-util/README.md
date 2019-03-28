@@ -26,3 +26,4 @@ asyncOf(cb => funcUseCallBack('param1', cb))
     .catch(err => console.log('funcUseCallBack throws error', err))
     
 ```
+

@@ -21,7 +21,7 @@ let schema = tjs.obj({
         mid: tjs.str().opt(),
         last: tjs.str(),
     }),
-    friends: tjs.arr(tjs.str())
+    friends: tjs.arr(tjs.str()).opt()
 })
 
 let result = schema.validate({})
