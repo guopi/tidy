@@ -295,7 +295,7 @@ function nodeChildCount(node: PathAstNode): number {
     return node.children ? node.children.length : 0
 }
 
-function nodeText(node: PathAstNode): string {
+export function nodeText(node: PathAstNode): string {
     if (node.end > node.start) {
         return node.input.substring(node.start, node.end)
     }

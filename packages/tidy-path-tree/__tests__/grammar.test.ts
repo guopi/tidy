@@ -1,5 +1,51 @@
 import * as test from 'tape'
-import { escapeTextToRegexStr, TEXT_CHARS_NEED_ESCAPE } from '../src/grammar'
+import { createParser, escapeTextToRegexStr, TEXT_CHARS_NEED_ESCAPE } from '../src/grammar'
+import { nodeText } from '../src/node'
+
+interface ParseExceptLayer {
+    raw?: string
+    children?: string[]
+}
+
+test('parse', t => {
+    const parser = createParser('/')
+
+    function testParser(path: string, except: ParseExceptLayer[]) {
+        const root = parser(path)
+        t.assert(root && root.children)
+        t.equal(root!.children!.length, except.length)
+        for (let i = 0; i < except.length; i++) {
+            let layer = except[i]
+            let layerAst = root!.children![i]
+            if (layer.children) {
+                t.assert(layerAst && layerAst.children)
+                t.equal(layerAst.children.length, layer.children.length)
+                for (let j = 0, n = layer.children.length; j < n; j++) {
+                    t.equal(nodeText(layerAst.children[j]), layer.children[j])
+                }
+            } else {
+                t.equal(nodeText(layerAst), layer.raw)
+
+                if (layerAst.children && layerAst.children.length > 0) {
+                    t.equal(layerAst.children.length, 1)
+                    t.equal(nodeText(layerAst.children[0]), layer.raw)
+                }
+            }
+        }
+    }
+
+    testParser('', [{ raw: '' }])
+    testParser('/', [{ raw: '' }, { raw: '' }])
+    testParser('a/', [{ raw: 'a' }, { raw: '' }])
+    testParser('/b', [{ raw: '' }, { raw: 'b' }])
+    testParser('a/b/c', [{ raw: 'a' }, { raw: 'b' }, { raw: 'c' }])
+    testParser('a/b/c/**', [{ raw: 'a' }, { raw: 'b' }, { raw: 'c' }, { raw: '**' },])
+    testParser('a/:b', [{ raw: 'a' }, {
+        children: [':b']
+    }])
+
+    t.end()
+})
 
 test('escapeTextToRegexStr', (t) => {
     const checked: { [text: string]: true } = {}
@@ -35,3 +81,4 @@ test('escapeTextToRegexStr', (t) => {
 
     t.end()
 })
+

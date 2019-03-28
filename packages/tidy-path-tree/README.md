@@ -48,7 +48,7 @@ const found = tree.find('/a/b/tidy')
 ## Path examples:
 - /
 - /part1
-- /part1/part2/
+- part1/part2
 - /part1/part2/**
 - /test/:name/:type
 - /test/:country([a-z]+)/:name([a-z]+)?/:code?([0-9]+)
