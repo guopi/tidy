@@ -1,15 +1,6 @@
 # `tidyjs`
 > A Node.js framework born for more tidy development of building server-side applications on top of Node.js & Typescript.
 
-## Features
-- **Extensible** : powerful and simple plugin system
-- **Developer friendly** : full Typescript support, and built to be very expressive.
-- **Clean business logic** : use pure function, separated from web protocol
-- **Full async support** : take advantage of the new async/await syntax
-- **Routing support type and schema** : we can easily build strongly typed interfaces.
-- **High performance routing** : use used Prefix Tree, when there are a lot of routes, lookup performance can be greatly improved
-- **Clean and solid code** : with type Typescript strict mode, and async/await catch all errors and exceptions
-
 ## Installation
 ```bash
 $ npm install tidyjs --save
@@ -28,6 +19,16 @@ new TidyServerApp()
     })
     .listen(3000)
 ```
+
+## Features
+- **Extensible** : powerful and simple plugin system
+- **Developer friendly** : full Typescript support, and built to be very expressive.
+- **Clean business logic** : use pure function, separated from web protocol
+- **Full async support** : take advantage of the new async/await syntax
+- **Routing support type and schema** : we can easily build strongly typed interfaces.
+- **High performance routing** : use used Prefix Tree, when there are a lot of routes, lookup performance can be greatly improved
+- **Clean and solid code** : with type Typescript strict mode, and async/await catch all errors and exceptions
+
 ## Docs
 - [Tidy Family](https://github.com/guopi/tidy/wiki)
 - [Overview](https://github.com/guopi/tidy/tidyjs)
