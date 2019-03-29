@@ -1,5 +1,5 @@
 # `tidyjs`
-Born for more tidy development of building server-side applications on top of Node.js & Typescript.
+> A Node.js framework born for more tidy development of building server-side applications on top of Node.js & Typescript.
 
 ## Features
 - **Extensible** : powerful and simple plugin system
@@ -30,12 +30,10 @@ new TidyServerApp()
 ```
 ## Docs
 - [Tidy Family](https://github.com/guopi/tidy/wiki)
-- [Overview](https://github.com/guopi/tidy/tidyjs:Overview)
-- [Getting Started](https://github.com/guopi/tidy/wiki/tidyjs:Getting-Started)
-- [Core Concepts](https://github.com/guopi/tidy/wiki/tidyjs:Core-Concepts)
-- [Plugins](https://github.com/guopi/tidy/wiki/tidyjs:Plugins)
+- [Overview](https://github.com/guopi/tidy/tidyjs)
+- [Plugins](https://github.com/guopi/tidy/tidy-plugins)
 - [Router](https://github.com/guopi/tidy/wiki/tidy-router)
-- [Logging](https://github.com/guopi/tidy/wiki/tidyjs:Logging)
+- [Logging](https://github.com/guopi/tidy/wiki/tidyjs-Logging)
     
 ## [Examples]
 [code on github](https://github.com/guopi/tidy/tree/master/packages/tidy-examples)
