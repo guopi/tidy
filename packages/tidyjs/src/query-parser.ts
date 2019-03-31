@@ -11,7 +11,7 @@ const _defaultOpts = {
     allowDots: true
 }
 
-export type WithQuery<T> = WithProperty<T, 'query', NamedDict>
+export type WithQuery<T> = WithProperty<T, { query?: NamedDict }>
 
 export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOptions): TidyPlugin<REQ, RESP, WithQuery<REQ>> {
     const opts = options ? { ..._defaultOpts, ...options } : _defaultOpts
@@ -26,7 +26,7 @@ export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOpti
                     query = qs.parse(q, opts)
                 }
             }
-            req.query = query || {}
+            req.query = query
         }
 
         return next(ctx as any as TidyContext<WithQuery<REQ>>)

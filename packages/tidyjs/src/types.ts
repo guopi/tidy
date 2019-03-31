@@ -26,7 +26,6 @@ export interface TidyResponse {
 }
 
 export type PropertyOf<T, K> = K extends keyof T ? T[K] : undefined
-export type WithProperty<T, K extends keyof any, V>
-    = K extends keyof T ? (Pick<T, Exclude<keyof T, K>> & Record<K, V>) : (T & Record<K, V>)
+export type WithProperty<T, Props extends {}> = Pick<T, Exclude<keyof T, keyof Props>> & Props
 
 export type TidyLogger = pino.Logger

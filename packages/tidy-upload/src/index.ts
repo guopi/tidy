@@ -1,29 +1,33 @@
-import {
-    NamedDict,
-    TidyBaseRequestType,
-    TidyNext,
-    TidyContext,
-    TidyPlugin,
-    TidyReturnPromise
-} from 'tidyjs'
+import { NamedDict, TidyContext, TidyNext, TidyPlugin, WithProperty } from 'tidyjs'
 import http from 'http'
 import * as formidable from 'formidable'
 import fs from 'fs'
 
-export interface TidyUploadFiles extends _TidyUploadFiles {
+interface TidyUploadFile {
+    size: number;
+    path: string;
+    name: string;
+    type: string;
+    lastModifiedDate?: Date;
+    hash?: string;
 }
 
-export type WithFiles<T> = T & {
-    files?: TidyUploadFiles
+interface TidyUploadFiles {
+    [name: string]: TidyUploadFile | TidyUploadFile[] | undefined
 }
+
+export type WithFiles<T> = WithProperty<T, {
+    files?: TidyUploadFiles
+    body?: NamedDict
+}>
 
 export interface UploadOptions {
     onFileBegin?: (name: string, file: formidable.File) => void
 }
 
-export function tidyUploadPlugin<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: UploadOptions): TidyPlugin<REQ, WithFiles<REQ>> {
+export function tidyUploadPlugin<REQ, RESP>(options?: UploadOptions): TidyPlugin<REQ, RESP, WithFiles<REQ>> {
     const opts = options || {}
-    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithFiles<REQ>>): TidyReturnPromise<any> {
+    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithFiles<REQ>, RESP>): Promise<RESP> {
         const req = (ctx.req as WithFiles<REQ>)
         let files: TidyUploadFiles | undefined
         if (req.files === undefined && !ctx.disabled(tidyUploadPlugin.DISABLE_KEY)) {
@@ -35,10 +39,10 @@ export function tidyUploadPlugin<REQ extends TidyBaseRequestType = TidyBaseReque
         }
 
         const deletable = _deletableFilePaths(files)
-        if (deletable) {
-            try {
-                return Promise.resolve(next(ctx as TidyContext<WithFiles<REQ>>))
-            } finally {
+        try {
+            return Promise.resolve(next(ctx as any as TidyContext<WithFiles<REQ>>))
+        } finally {
+            if (deletable) {
                 _deleteFiles(deletable)
                     .then(errors => {
                         for (const path in errors) {
@@ -55,13 +59,11 @@ export function tidyUploadPlugin<REQ extends TidyBaseRequestType = TidyBaseReque
                         })
                     })
             }
-        } else {
-            return next(ctx as TidyContext<WithFiles<REQ>>)
         }
     }
 }
 
-tidyUploadPlugin.DISABLE_KEY = 'upload'
+tidyUploadPlugin.DISABLE_KEY = 'parseUpload'
 
 function _errorMessage(err: any) {
     if (err instanceof Error)

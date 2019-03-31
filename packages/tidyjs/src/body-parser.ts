@@ -88,7 +88,7 @@ class CatEnvs {
     }
 }
 
-export type WithBody<T> = WithProperty<T, 'body', TidySimpleData>
+export type WithBody<T> = WithProperty<T, { body?: TidySimpleData }>
 
 export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlugin<REQ, RESP, WithBody<REQ>> {
     const env = new CatEnvs(options)

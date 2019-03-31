@@ -1,12 +1,16 @@
 import * as cookie from 'cookie'
-import { TidyBaseRequestType, TidyNext, TidyContext, TidyPlugin, TidyReturn } from 'tidyjs'
+import { NamedStringDict, OrPromise, TidyContext, TidyNext, TidyPlugin, WithProperty } from 'tidyjs'
 
-export type WithCookies<T> = T & {
-    cookies?: _TidyCookies
+export type WithCookies<T> = WithProperty<T, { cookies?: NamedStringDict }>
+
+interface WithCookieHeader {
+    headers?: {
+        cookie: string
+    }
 }
 
-export function tidyCookieParser<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: cookie.CookieParseOptions): TidyPlugin<REQ, WithCookies<REQ>> {
-    return function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithCookies<REQ>>): TidyReturn<any> {
+export function tidyCookieParser<REQ extends WithCookieHeader, RESP>(options?: cookie.CookieParseOptions): TidyPlugin<REQ, RESP, WithCookies<REQ>> {
+    return function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithCookies<REQ>, RESP>): OrPromise<RESP> {
         const req = (ctx.req as WithCookies<REQ>)
         if (!req.cookies) {
             const cookieHeader = req.headers && req.headers.cookie
@@ -14,6 +18,8 @@ export function tidyCookieParser<REQ extends TidyBaseRequestType = TidyBaseReque
                 req.cookies = cookie.parse(cookieHeader, options)
         }
 
-        return next(ctx as TidyContext<WithCookies<REQ>>)
+        return next(ctx as any as TidyContext<WithCookies<REQ>>)
     }
 }
+
+tidyCookieParser.DISABLE_KEY = 'parseCookies'

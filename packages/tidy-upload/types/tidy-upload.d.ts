@@ -6,15 +6,3 @@ declare global {
     }
 }
 
-interface _TidyUploadFile {
-    size: number;
-    path: string;
-    name: string;
-    type: string;
-    lastModifiedDate?: Date;
-    hash?: string;
-}
-
-interface _TidyUploadFiles {
-    [name: string]: _TidyUploadFile | _TidyUploadFile[] | undefined
-}
