@@ -22,6 +22,24 @@ export interface TidyServerAppOptions {
 
 interface TidyPluginHub<REQ, RESP> {
     use<NextReq = REQ, NextResp = RESP>(plugin: TidyPlugin<REQ, RESP, NextReq, NextResp> | TidyPluginLike<REQ, RESP, NextReq, NextResp>): TidyPluginHub<NextReq, NextResp>
+
+    listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function): void;
+
+    listen(port?: number, hostname?: string, listeningListener?: Function): void;
+
+    listen(port?: number, backlog?: number, listeningListener?: Function): void;
+
+    listen(port?: number, listeningListener?: Function): void;
+
+    listen(path: string, backlog?: number, listeningListener?: Function): void;
+
+    listen(path: string, listeningListener?: Function): void;
+
+    listen(options: ListenOptions, listeningListener?: Function): void;
+
+    listen(handle: any, backlog?: number, listeningListener?: Function): void;
+
+    listen(handle: any, listeningListener?: Function): void
 }
 
 export class TidyServerApp implements TidyPluginHub<TidyRequest, HttpReturn<TidyResponse>> {
