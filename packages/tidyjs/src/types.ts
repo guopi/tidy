@@ -16,20 +16,19 @@ export interface NamedDict {
     [name: string]: TidySimpleData
 }
 
-export interface TidyBaseRequestType extends _Tidy_RequestType {
+export interface TidyRequest extends _Tidy_RequestType {
     headers?: http.IncomingHttpHeaders,
     params?: NamedDict
     query?: NamedDict
     body?: string | {} | TidySimpleData[]
 }
 
-export interface TidyBaseResponseType extends _Tidy_ResponseType {
+export interface TidyResponse extends _Tidy_ResponseType {
     body?: string | object
     headers?: http.OutgoingHttpHeaders
 }
 
-export type TidyResponseBody<R extends TidyBaseResponseType = TidyBaseResponseType> = R extends { body: any } ? R['body'] : undefined
+export type BodyOf<T> = T extends { body: any } ? T['body'] : undefined
+export type HeadersOf<T> = T extends { headers: any } ? T['headers'] : undefined
 
 export type TidyLogger = pino.Logger
-
-

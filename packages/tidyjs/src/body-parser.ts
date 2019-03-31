@@ -1,8 +1,7 @@
-import { TidyBaseRequestType } from './types'
-import { TidyNext } from './app'
-import { TidyReturnPromise } from './result'
+import { TidyNext, TidyPlugin } from './app'
 import { TidyContext } from './context'
 import CoBody from 'co-body'
+import { TidySimpleData } from './types'
 
 interface CatOpts {
     extendTypes?: string[]
@@ -77,7 +76,7 @@ class CatEnvs {
         }
     }
 
-    async parse<REQ extends TidyBaseRequestType>(ctx: TidyContext<REQ>): Promise<any> {
+    async parse<REQ>(ctx: TidyContext<REQ>): Promise<any> {
         const req = ctx._originReq
 
         for (const cat of _allCats) {
@@ -89,15 +88,18 @@ class CatEnvs {
     }
 }
 
-export function tidyBodyParser<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: BodyParserOptions) {
+export type WithBody<T> = T extends { body: any } ? T : (T & { body?: TidySimpleData })
+
+export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlugin<REQ, RESP, WithBody<REQ>> {
     const env = new CatEnvs(options)
 
-    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<REQ>): TidyReturnPromise<any> {
-        if (ctx.req.body === undefined && !ctx.disabled(tidyBodyParser.DISABLE_KEY)) {
-            ctx.req.body = await env.parse(ctx)
+    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<WithBody<REQ>, RESP>): Promise<RESP> {
+        const req = ctx.req as WithBody<REQ>
+        if (req.body === undefined && !ctx.disabled(tidyBodyParser.DISABLE_KEY)) {
+            req.body = await env.parse(ctx)
         }
 
-        return next(ctx)
+        return Promise.resolve(next(ctx as TidyContext<WithBody<REQ>>))
     }
 }
 

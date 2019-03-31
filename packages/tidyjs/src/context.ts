@@ -1,9 +1,9 @@
-import { NamedBoolDict, TidyBaseRequestType, TidyLogger } from './types'
+import { HeadersOf, NamedBoolDict, TidyLogger, TidyRequest } from './types'
 import { TidyErrorHandler } from './result'
 import typeis from 'type-is'
 import http from 'http'
 
-export class TidyContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> {
+export class TidyContext<REQ = TidyRequest> {
     disables?: NamedBoolDict
 
     constructor(public _originReq: http.IncomingMessage,
@@ -25,8 +25,8 @@ export class TidyContext<REQ extends TidyBaseRequestType = TidyBaseRequestType> 
         return this._originReq.method!
     }
 
-    get headers(): REQ['headers'] {
-        return this.req.headers
+    get headers(): HeadersOf<REQ> {
+        return (this.req as any).headers
     }
 
     /**

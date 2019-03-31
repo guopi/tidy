@@ -1,9 +1,9 @@
 import * as qs from 'qs'
-import { TidyBaseRequestType } from './types'
+import { NamedDict, TidyRequest } from './types'
 import { TidyContext } from './context'
-import { TidyNext } from './app'
-import { TidyReturnPromise } from './result'
+import { TidyNext, TidyPlugin } from './app'
 import { parse as parseUrl } from 'url'
+import { OrPromise } from './result'
 
 export type QueryStringParserOptions = qs.IParseOptions
 
@@ -11,22 +11,25 @@ const _defaultOpts = {
     allowDots: true
 }
 
-export function tidyQueryStringParser<REQ extends TidyBaseRequestType = TidyBaseRequestType>(options?: QueryStringParserOptions) {
+export type WithQuery<T> = T extends { query: any } ? T : (T & { query?: NamedDict })
+
+export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOptions): TidyPlugin<REQ, RESP, WithQuery<REQ>> {
     const opts = options ? { ..._defaultOpts, ...options } : _defaultOpts
-    return async function queryStringParser(ctx: TidyContext<REQ>, next: TidyNext<REQ>): TidyReturnPromise<any> {
-        if (ctx.req.query === undefined && !ctx.disabled(tidyQueryStringParser.DISABLE_KEY)) {
+    return function queryStringParser(ctx: TidyContext<REQ>, next: TidyNext<WithQuery<REQ>, RESP>): OrPromise<RESP> {
+        const req = ctx.req as WithQuery<REQ>
+        if (req.query === undefined && !ctx.disabled(tidyQueryStringParser.DISABLE_KEY)) {
             const url = ctx.url
-            let query: TidyBaseRequestType['query']
+            let query: TidyRequest['query']
             if (url !== undefined) {
                 const q = parseUrl(url).query
                 if (q != null) {
                     query = qs.parse(q, opts)
                 }
             }
-            ctx.req.query = query || {}
+            req.query = query || {}
         }
 
-        return next(ctx)
+        return next(ctx as TidyContext<WithQuery<REQ>>)
     }
 }
 

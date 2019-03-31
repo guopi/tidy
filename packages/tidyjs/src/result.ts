@@ -1,5 +1,5 @@
 import http from 'http'
-import { TidyBaseResponseType, TidyResponseBody } from './types'
+import { BodyOf, TidyResponse } from './types'
 
 export abstract class AbstractResult {
     protected _headers?: http.OutgoingHttpHeaders
@@ -79,7 +79,7 @@ export abstract class AbstractResult {
     }
 }
 
-export class JsonResult<BODY extends TidyBaseResponseType> extends AbstractResult {
+export class JsonResult<BODY> extends AbstractResult {
     static readonly Content_Type = 'application/json'
 
     constructor(private _json: BODY) {
@@ -111,13 +111,8 @@ export class TextResult extends TidyResult {
     }
 }
 
-export type TidyReturnEntity<RESP extends TidyBaseResponseType = TidyBaseResponseType>
-    = TidyResponseBody<RESP> | JsonResult<RESP> | TidyResult | undefined
+export type HttpReturn<RESP = TidyResponse> = BodyOf<RESP> | JsonResult<BodyOf<RESP>> | TidyResult
+export type OrPromise<T> = T | Promise<T>
 
-export type TidyReturnPromise<RESP extends TidyBaseResponseType>
-    = Promise<TidyReturnEntity<RESP>>
+export type TidyErrorHandler = (err: any) => OrPromise<HttpReturn<any>>
 
-export type TidyReturn<RESP extends TidyBaseResponseType = TidyBaseResponseType>
-    = TidyReturnEntity<RESP> | TidyReturnPromise<RESP>
-
-export type TidyErrorHandler = (err: any) => TidyReturn<any>
