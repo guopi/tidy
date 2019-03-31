@@ -1,22 +1,22 @@
 import http from 'http'
-import { AbstractResult, HttpReturn, TextResult, TidyResult } from './result'
+import { AbstractResult, WebReturn, TextResult, TidyResult } from './result'
 import { TidySimpleData } from './types'
 
-export interface TidyHttpError {
+export interface WebError {
     statusCode?: number
     statusMessage?: string
     headers?: http.OutgoingHttpHeaders
     text?: string
 }
 
-export function defaultErrorHandler(err: any): HttpReturn<any> {
+export function defaultErrorBuilder(err: any): WebReturn<any> {
     if (undefined == err)
         return undefined
 
     if (err instanceof AbstractResult)
         return err
 
-    const hError = err as TidyHttpError
+    const hError = err as WebError
 
     let text: string | undefined = hError.text
     let statusCode: number | undefined
@@ -58,7 +58,4 @@ export class ErrorResult extends TidyResult {
             error: this.error
         }))
     }
-}
-
-export class HttpError extends Error {
 }

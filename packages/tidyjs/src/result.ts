@@ -1,5 +1,6 @@
 import http from 'http'
-import { PropertyOf, TidyResponse } from './types'
+import { OrPromise, PropertyOf } from './types'
+import { WebResponse } from './web'
 
 export abstract class AbstractResult {
     protected _headers?: http.OutgoingHttpHeaders
@@ -111,11 +112,10 @@ export class TextResult extends TidyResult {
     }
 }
 
-export type HttpReturn<RESP = TidyResponse> =
-    PropertyOf<RESP, 'body'>
+export type WebReturn<RESP = WebResponse>
+    = PropertyOf<RESP, 'body'>
     | JsonResult<PropertyOf<RESP, 'body'>>
     | TidyResult
-export type OrPromise<T> = T | Promise<T>
 
-export type TidyErrorHandler = (err: any) => OrPromise<HttpReturn<any>>
+export type ErrorBuilder = (err: any) => OrPromise<WebReturn<any>>
 

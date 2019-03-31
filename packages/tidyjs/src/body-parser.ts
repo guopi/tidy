@@ -1,7 +1,7 @@
-import { TidyNext, TidyPlugin } from './app'
-import { TidyContext } from './context'
+import { WebContext } from './context'
 import CoBody from 'co-body'
-import { TidySimpleData, WithProperty } from './types'
+import { TidySimpleData, WithProperties } from './types'
+import { NextPlugin, TidyPlugin } from './plugin'
 
 interface CatOpts {
     extendTypes?: string[]
@@ -76,7 +76,7 @@ class CatEnvs {
         }
     }
 
-    async parse(ctx: TidyContext<any>): Promise<any> {
+    async parse(ctx: WebContext<any>): Promise<any> {
         const req = ctx._originReq
 
         for (const cat of _allCats) {
@@ -88,19 +88,19 @@ class CatEnvs {
     }
 }
 
-export type WithBody<T> = WithProperty<T, { body?: TidySimpleData }>
+export type WithBody<T> = WithProperties<T, { body?: TidySimpleData }>
 
-export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlugin<REQ, RESP, WithBody<REQ>> {
+export function tidyBodyParser<Req, Resp>(options?: BodyParserOptions): TidyPlugin<Req, Resp, WithBody<Req>> {
     const env = new CatEnvs(options)
-    type NextReq = WithBody<REQ>
+    type NextReq = WithBody<Req>
 
-    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): Promise<RESP> {
-        const req = ctx.req as WithBody<REQ>
+    return async function bodyParser(ctx: WebContext<Req>, next: NextPlugin<NextReq, Resp>): Promise<Resp> {
+        const req = ctx.req as WithBody<Req>
         if (req.body === undefined && !ctx.disabled(tidyBodyParser.DISABLE_KEY)) {
             req.body = await env.parse(ctx)
         }
 
-        return Promise.resolve(next(ctx as any as TidyContext<NextReq>))
+        return Promise.resolve(next(ctx as any as WebContext<NextReq>))
     }
 }
 

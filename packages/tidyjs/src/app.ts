@@ -1,28 +1,18 @@
 import http from 'http'
 import pino from 'pino'
-import { TidyLogger, TidyRequest, TidyResponse } from './types'
-import { AbstractResult, HeadResult, HttpReturn, JsonResult, OrPromise, TidyErrorHandler } from './result'
+import { TidyLogger } from './logger'
+import { WebRequest, WebResponse } from './web'
+import { AbstractResult, ErrorBuilder, HeadResult, JsonResult, WebReturn } from './result'
 import { ListenOptions } from 'net'
-import { defaultErrorHandler } from './error'
-import { TidyContext } from './context'
-
-export type TidyNext<REQ, RESP>
-    = (ctx: TidyContext<REQ>) => OrPromise<RESP>
-
-export type TidyPlugin<REQ = TidyRequest, RESP = HttpReturn<TidyResponse>, NextReq = REQ, NextResp = RESP>
-    = (ctx: TidyContext<REQ>, next: TidyNext<NextReq, NextResp>) => OrPromise<RESP>
-
-export interface TidyPluginLike<REQ, RESP, NextReq, NextResp> {
-    asTidyPlugin(): TidyPlugin<REQ, RESP, NextReq, NextResp>
-}
+import { defaultErrorBuilder } from './error'
+import { WebContext } from './context'
+import { composePlugins, TidyPlugin, TidyPluginHub, TidyPluginLike } from './plugin'
 
 export interface TidyServerAppOptions {
     logger?: TidyLogger
 }
 
-interface TidyPluginHub<REQ, RESP> {
-    use<NextReq = REQ, NextResp = RESP>(plugin: TidyPlugin<REQ, RESP, NextReq, NextResp> | TidyPluginLike<REQ, RESP, NextReq, NextResp>): TidyPluginHub<NextReq, NextResp>
-
+interface Listenable {
     listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function): void;
 
     listen(port?: number, hostname?: string, listeningListener?: Function): void;
@@ -42,9 +32,13 @@ interface TidyPluginHub<REQ, RESP> {
     listen(handle: any, listeningListener?: Function): void
 }
 
-export class TidyServerApp implements TidyPluginHub<TidyRequest, HttpReturn<TidyResponse>> {
-    private _plugins: TidyPlugin<any, any, any, any>[] = []
-    private _logger: TidyLogger
+export function tidyServerApp(opts?: TidyServerAppOptions) {
+    return new ServerApp(opts)
+}
+
+class ServerApp implements TidyPluginHub<WebRequest, WebReturn, Listenable>, Listenable {
+    private _plugins: TidyPlugin<any, any>[] = []
+    private readonly _logger: TidyLogger
 
     constructor(opts?: TidyServerAppOptions) {
         this._logger = opts && opts.logger || pino()
@@ -55,12 +49,18 @@ export class TidyServerApp implements TidyPluginHub<TidyRequest, HttpReturn<Tidy
      * @param plugin {TidyPlugin}
      * @returns this
      */
-    public use<NextReq, NextResp>(plugin: TidyPlugin<TidyRequest, HttpReturn<TidyResponse>, NextReq, NextResp> | TidyPluginLike<TidyRequest, HttpReturn<TidyResponse>, NextReq, NextResp>): TidyPluginHub<NextReq, NextResp> {
-        if ((plugin as TidyPluginLike<TidyRequest, HttpReturn<TidyResponse>, NextReq, NextResp>).asTidyPlugin)
-            this._plugins.push((plugin as TidyPluginLike<TidyRequest, HttpReturn<TidyResponse>, NextReq, NextResp>).asTidyPlugin())
+    public use<NextReq, NextResp>(
+        plugin:
+            TidyPlugin<WebRequest, WebReturn, NextReq, NextResp>
+            | TidyPluginLike<WebRequest, WebReturn, NextReq, NextResp>
+    ): TidyPluginHub<NextReq, NextResp, Listenable> & Listenable {
+
+        if ((plugin as TidyPluginLike<any, any>).asTidyPlugin)
+            this._plugins.push((plugin as TidyPluginLike<any, any>).asTidyPlugin())
         else
-            this._plugins.push(plugin as TidyPlugin<TidyRequest, HttpReturn<TidyResponse>, NextReq, NextResp>)
-        return this as any as TidyPluginHub<NextReq, NextResp>
+            this._plugins.push(plugin as TidyPlugin<any, any>)
+
+        return this as any as TidyPluginHub<NextReq, NextResp, Listenable> & Listenable
     }
 
     listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function): void;
@@ -73,22 +73,26 @@ export class TidyServerApp implements TidyPluginHub<TidyRequest, HttpReturn<Tidy
     listen(handle: any, backlog?: number, listeningListener?: Function): void;
     listen(handle: any, listeningListener?: Function): void
     public listen(): void {
-        const fn = _compose(this._plugins)
+        const fn = composePlugins(this._plugins)
 
         const server = http.createServer((_originReq: http.IncomingMessage, resp: http.ServerResponse) => {
-            const req: TidyRequest = { headers: _originReq.headers }
-            const ctx = new TidyContext(_originReq, req, defaultErrorHandler, this._logger
+            const req: WebRequest = { headers: _originReq.headers }
+            const ctx = new WebContext(
+                _originReq,
+                req,
+                defaultErrorBuilder,
+                this._logger
             )
             this._process(ctx, resp, fn)
         })
         server.listen(...arguments)
     }
 
-    private _process(ctx: TidyContext, resp: http.ServerResponse, fn: TidyPlugin) {
-        const _onerror: TidyErrorHandler = ctx.onError
+    private _process(ctx: WebContext<WebRequest>, resp: http.ServerResponse, fn: TidyPlugin) {
+        const _onerror: ErrorBuilder = ctx.errorBuilder
         const methodIsNotHead = ctx.method.toUpperCase() !== 'HEAD'
 
-        function _send(result: HttpReturn<TidyResponse>) {
+        function _send(result: WebReturn<WebResponse>) {
             if (result !== undefined) {
                 if (result instanceof AbstractResult) {
                     result.sendHead(resp)
@@ -120,28 +124,4 @@ function _defaultPlugin(): HeadResult {
     let r = new HeadResult()
     r.statusCode = 404
     return r
-}
-
-function _compose(array: TidyPlugin<any, any>[]): TidyPlugin {
-    return function (context: TidyContext, next: TidyNext<any, any>): any {
-        // last called #
-        let lastIndex = -1
-
-        return dispatch(0, context)
-
-        function dispatch(i: number, ctx: TidyContext): OrPromise<any> {
-            if (i <= lastIndex)
-                return Promise.reject(new Error('next() called multiple times'))
-
-            lastIndex = i
-            try {
-                if (i < array.length)
-                    return array[i](ctx, dispatch.bind(null, i + 1))
-                else
-                    return next(ctx)
-            } catch (err) {
-                return Promise.reject(err)
-            }
-        }
-    }
 }
