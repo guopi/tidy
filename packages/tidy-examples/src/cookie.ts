@@ -1,7 +1,7 @@
-import { JsonResult, TidyServerApp } from 'tidyjs'
+import { JsonResult, tidyServerApp } from 'tidyjs'
 import { tidyCookieParser } from 'tidy-cookie'
 
-new TidyServerApp()
+tidyServerApp()
     .use(tidyCookieParser())
     .use(ctx => {
         return new JsonResult<any>({

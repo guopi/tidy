@@ -1,8 +1,8 @@
-import { JsonResult, TidyServerApp } from 'tidyjs'
+import { JsonResult, tidyServerApp } from 'tidyjs'
 import { tidyUploadPlugin } from 'tidy-upload'
 import * as fs from 'fs'
 
-new TidyServerApp()
+tidyServerApp()
     .use(tidyUploadPlugin())
     .use(async ctx => {
         const req = ctx.req

@@ -12,7 +12,7 @@ $ npm install tidy-router --save
 ```typescript
 // for typescript
 
-import { tidyBodyParser, TidyServerApp } from 'tidyjs'
+import { tidyBodyParser, tidyServerApp } from 'tidyjs'
 import { TidyRouter } from 'tidy-router'
 import { tjs } from 'tidy-json-schema'
 
@@ -53,7 +53,7 @@ const router = new TidyRouter<any>()
         }
     })
 
-new TidyServerApp()
+tidyServerApp()
     .use(tidyBodyParser())
     .use(router)
     .listen(3000)

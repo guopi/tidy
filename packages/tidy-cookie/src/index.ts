@@ -1,18 +1,17 @@
 import * as cookie from 'cookie'
-import { NamedStringDict, OrPromise, TidyContext, TidyNext, TidyPlugin, WithProperty } from 'tidyjs'
-import { WithFiles } from '../../tidy-upload/src'
+import { NamedStringDict, NextPlugin, OrPromise, TidyPlugin, WebContext, WithProperties } from 'tidyjs'
 
-export type WithCookies<T> = WithProperty<T, { cookies?: NamedStringDict }>
+export type WithCookies<T> = WithProperties<T, { cookies?: NamedStringDict }>
 
 interface WithCookieHeader {
     headers?: {
-        cookie: string
+        cookie?: string
     }
 }
 
-export function tidyCookieParser<REQ extends WithCookieHeader, RESP>(options?: cookie.CookieParseOptions): TidyPlugin<REQ, RESP, WithCookies<REQ>> {
-    type NextReq = WithCookies<REQ>
-    return function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): OrPromise<RESP> {
+export function tidyCookieParser<Req extends WithCookieHeader, Resp>(options?: cookie.CookieParseOptions): TidyPlugin<Req, Resp, WithCookies<Req>> {
+    type NextReq = WithCookies<Req>
+    return function cookieParser(ctx: WebContext<Req>, next: NextPlugin<NextReq, Resp>): OrPromise<Resp> {
         const req = (ctx.req as NextReq)
         if (!req.cookies) {
             const cookieHeader = req.headers && req.headers.cookie
@@ -20,7 +19,7 @@ export function tidyCookieParser<REQ extends WithCookieHeader, RESP>(options?: c
                 req.cookies = cookie.parse(cookieHeader, options) as NextReq['cookies']
         }
 
-        return next(ctx as any as TidyContext<NextReq>)
+        return next(ctx as any as WebContext<NextReq>)
     }
 }
 

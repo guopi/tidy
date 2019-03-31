@@ -10,10 +10,10 @@ $ npm install tidy-upload --save
 ## Usage
 
 ```typescript
-import { TidyServerApp } from 'tidyjs'
+import { tidyServerApp } from 'tidyjs'
 import { tidyUploadPlugin } from 'tidy-upload'
 
-new TidyServerApp()
+tidyServerApp()
     .use(tidyUploadPlugin())
     .use(ctx => {
         return { message: `file1 uploaded to ${ctx.req.files.file1.path}` }

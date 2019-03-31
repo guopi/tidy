@@ -1,4 +1,4 @@
-import { NamedDict, TidyContext, TidyNext, TidyPlugin, WithProperty } from 'tidyjs'
+import { NamedDict, NextPlugin, TidyPlugin, WebContext, WithProperties } from 'tidyjs'
 import http from 'http'
 import * as formidable from 'formidable'
 import fs from 'fs'
@@ -16,7 +16,7 @@ interface TidyUploadFiles {
     [name: string]: TidyUploadFile | TidyUploadFile[] | undefined
 }
 
-export type WithFiles<T> = WithProperty<T, {
+export type WithFiles<T> = WithProperties<T, {
     files?: TidyUploadFiles
     body?: NamedDict
 }>
@@ -25,10 +25,10 @@ export interface UploadOptions {
     onFileBegin?: (name: string, file: formidable.File) => void
 }
 
-export function tidyUploadPlugin<REQ, RESP>(options?: UploadOptions): TidyPlugin<REQ, RESP, WithFiles<REQ>> {
-    type NextReq = WithFiles<REQ>
+export function tidyUploadPlugin<Req, Resp>(options?: UploadOptions): TidyPlugin<Req, Resp, WithFiles<Req>> {
+    type NextReq = WithFiles<Req>
     const opts = options || {}
-    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): Promise<RESP> {
+    return async function cookieParser(ctx: WebContext<Req>, next: NextPlugin<NextReq, Resp>): Promise<Resp> {
         const req = (ctx.req as NextReq)
         let files: TidyUploadFiles | undefined
         if (req.files === undefined && !ctx.disabled(tidyUploadPlugin.DISABLE_KEY)) {
@@ -42,7 +42,7 @@ export function tidyUploadPlugin<REQ, RESP>(options?: UploadOptions): TidyPlugin
 
         const deletable = _deletableFilePaths(files)
         try {
-            return Promise.resolve(next(ctx as any as TidyContext<NextReq>))
+            return Promise.resolve(next(ctx as any as WebContext<NextReq>))
         } finally {
             if (deletable) {
                 _deleteFiles(deletable)

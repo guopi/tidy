@@ -9,9 +9,9 @@ Node.js >= 8.0.0 required
 
 ## Getting Started
 ```js
-import { TidyServerApp } from 'tidyjs'
+import { tidyServerApp } from 'tidyjs'
 
-new TidyServerApp()
+tidyServerApp()
     .use(ctx => {
         return {
            message: `Hello ${ctx.req.query.my_name || 'world'}, I am tidyjs`,

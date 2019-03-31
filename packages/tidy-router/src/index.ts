@@ -1,13 +1,12 @@
 import {
     ErrorResult,
-    HttpReturn,
+    NextPlugin,
     OrPromise,
-    TidyContext,
-    TidyNext,
     TidyPlugin,
     TidyPluginLike,
-    TidyResponse,
-    WithProperty,
+    WebContext,
+    WebReturn,
+    WithProperties,
 } from 'tidyjs'
 import { PathParams, PathTree, PathTreeOptions, SimpleCache } from 'tidy-path-tree'
 import { parse } from 'url'
@@ -17,22 +16,22 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'OPTIONS'
 export type HttpMethods = HttpMethod | HttpMethod[] | 'ALL'
 const _allHttpMethods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
 
-type ValidateErrorResultCreator = (errors: ValidateError[]) => HttpReturn<any>
+type ValidateErrorResultCreator = (errors: ValidateError[]) => WebReturn<any>
 
 export interface TidyRouterOptions extends PathTreeOptions {
     onValidateError?: ValidateErrorResultCreator
 }
 
-export interface ApiInterface<REQ, RESP = HttpReturn<TidyResponse>> {
-    req: REQ
-    resp?: RESP
+export interface ApiInterface<Req, Resp = WebReturn> {
+    req: Req
+    resp?: Resp
 }
 
 type ApiRespTypeOf<T> = T extends { resp?: any } ? T['resp'] : any
 type ApiHandler<API extends ApiInterface<any, any>> = (
-    ctx: TidyContext<API['req']>,
-    next: TidyNext<API['req'], ApiRespTypeOf<API> | API['req']>
-) => OrPromise<HttpReturn<ApiRespTypeOf<API>>>
+    ctx: WebContext<API['req']>,
+    next: NextPlugin<API['req'], ApiRespTypeOf<API> | API['req']>
+) => OrPromise<WebReturn<ApiRespTypeOf<API>>>
 
 export interface ApiSchema {
     req: TidySchema<any>
@@ -41,13 +40,13 @@ export interface ApiSchema {
 
 type SchemaRespTypeOf<T> = T extends { resp: TidySchema<any> } ? TypeOf<T['resp']> : any
 type SchemaHandler<S extends ApiSchema> = (
-    ctx: TidyContext<TypeOf<S['req']>>,
-    next: TidyNext<TypeOf<S['req']>, SchemaRespTypeOf<S> | TypeOf<S['req']>>
-) => OrPromise<HttpReturn<SchemaRespTypeOf<S>>>
+    ctx: WebContext<TypeOf<S['req']>>,
+    next: NextPlugin<TypeOf<S['req']>, SchemaRespTypeOf<S> | TypeOf<S['req']>>
+) => OrPromise<WebReturn<SchemaRespTypeOf<S>>>
 
-export type WithPathParams<T> = WithProperty<T, { params?: PathParams }>
+export type WithPathParams<T> = WithProperties<T, { params?: PathParams }>
 
-export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPluginLike<REQ, RESP, WithPathParams<REQ>, RESP> {
+export class TidyRouter<Req, Resp = WebReturn> implements TidyPluginLike<Req, Resp, WithPathParams<Req>, Resp> {
     private readonly _treeOpts: PathTreeOptions
     private _onValidateError: ValidateErrorResultCreator
 
@@ -68,8 +67,8 @@ export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPlu
         this._treeOpts.parseCache!.clear()
     }
 
-    asTidyPlugin(): TidyPlugin<REQ, RESP, WithPathParams<REQ>> {
-        type NextReq = WithPathParams<REQ>
+    asTidyPlugin(): TidyPlugin<Req, Resp, WithPathParams<Req>> {
+        type NextReq = WithPathParams<Req>
         this.compact()
         return (ctx, next) => {
             const method = ctx.method.toUpperCase()
@@ -83,7 +82,7 @@ export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPlu
                     return found.data(ctx, next)
                 }
             }
-            return next(ctx as any as TidyContext<NextReq>)
+            return next(ctx as any as WebContext<NextReq>)
         }
     }
 
@@ -96,7 +95,7 @@ export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPlu
         return tree
     }
 
-    on<API extends ApiInterface<any, any> = { req: REQ }>(
+    on<API extends ApiInterface<any, any> = { req: Req }>(
         method: HttpMethods,
         path: string | string[],
         handler: ApiHandler<API>

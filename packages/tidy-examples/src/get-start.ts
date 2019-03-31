@@ -1,6 +1,6 @@
-import { JsonResult, TidyServerApp } from 'tidyjs'
+import { JsonResult, tidyServerApp } from 'tidyjs'
 
-new TidyServerApp()
+tidyServerApp()
     .use(ctx => {
         return new JsonResult<any>({
             method: ctx.method,

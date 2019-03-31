@@ -9,9 +9,10 @@ $ npm install tidy-cookie --save
 ## Usage
 
 ```typescript
-import { TidyServerApp } from 'tidyjs'
+import { tidyServerApp } from 'tidyjs'
 import { tidyCookieParser } from 'tidy-cookie'
-new TidyServerApp()
+
+tidyServerApp()
     .use(tidyCookieParser())
     .use(ctx => {
         // ctx.req.cookies is a object like { cookie1:value1,...}
