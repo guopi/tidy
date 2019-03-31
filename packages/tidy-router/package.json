@@ -1,6 +1,6 @@
 {
     "name": "tidy-router",
-    "version": "1.0.15",
+    "version": "1.0.16",
     "main": "./lib/index.cjs.js",
     "license": "MIT",
     "author": "guopi <guopi.pro@gmail.com>",
