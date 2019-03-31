@@ -1,7 +1,7 @@
 # `Tidy Family`
 > Tidy family, born for more tidy web development, based on top of Node.js & Typescript.
 
-Visit [tidyjs project][tidyjs] to start.
+Visit [tidyjs overview](https://github.com/guopi/tidy/wiki/tidyjs) to start.
 
 Visit [Tidy Family Docs](https://github.com/guopi/tidy/wiki) 
 
