@@ -16,19 +16,17 @@ export interface NamedDict {
     [name: string]: TidySimpleData
 }
 
-export interface TidyRequest extends _Tidy_RequestType {
-    headers?: http.IncomingHttpHeaders,
-    params?: NamedDict
-    query?: NamedDict
-    body?: string | {} | TidySimpleData[]
+export interface TidyRequest {
+    headers: http.IncomingHttpHeaders,
 }
 
-export interface TidyResponse extends _Tidy_ResponseType {
+export interface TidyResponse {
     body?: string | object
     headers?: http.OutgoingHttpHeaders
 }
 
-export type BodyOf<T> = T extends { body: any } ? T['body'] : undefined
-export type HeadersOf<T> = T extends { headers: any } ? T['headers'] : undefined
+export type PropertyOf<T, K> = K extends keyof T ? T[K] : undefined
+export type WithProperty<T, K extends keyof any, V>
+    = K extends keyof T ? (Pick<T, Exclude<keyof T, K>> & Record<K, V>) : (T & Record<K, V>)
 
 export type TidyLogger = pino.Logger

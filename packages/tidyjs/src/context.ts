@@ -1,4 +1,4 @@
-import { HeadersOf, NamedBoolDict, TidyLogger, TidyRequest } from './types'
+import { NamedBoolDict, PropertyOf, TidyLogger, TidyRequest } from './types'
 import { TidyErrorHandler } from './result'
 import typeis from 'type-is'
 import http from 'http'
@@ -25,7 +25,7 @@ export class TidyContext<REQ = TidyRequest> {
         return this._originReq.method!
     }
 
-    get headers(): HeadersOf<REQ> {
+    get headers(): PropertyOf<REQ, 'headers'> {
         return (this.req as any).headers
     }
 

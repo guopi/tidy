@@ -1,5 +1,5 @@
 import * as qs from 'qs'
-import { NamedDict, TidyRequest } from './types'
+import { NamedDict, WithProperty } from './types'
 import { TidyContext } from './context'
 import { TidyNext, TidyPlugin } from './app'
 import { parse as parseUrl } from 'url'
@@ -11,7 +11,7 @@ const _defaultOpts = {
     allowDots: true
 }
 
-export type WithQuery<T> = T extends { query: any } ? T : (T & { query?: NamedDict })
+export type WithQuery<T> = WithProperty<T, 'query', NamedDict>
 
 export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOptions): TidyPlugin<REQ, RESP, WithQuery<REQ>> {
     const opts = options ? { ..._defaultOpts, ...options } : _defaultOpts
@@ -19,7 +19,7 @@ export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOpti
         const req = ctx.req as WithQuery<REQ>
         if (req.query === undefined && !ctx.disabled(tidyQueryStringParser.DISABLE_KEY)) {
             const url = ctx.url
-            let query: TidyRequest['query']
+            let query: WithQuery<REQ>['query'] | undefined
             if (url !== undefined) {
                 const q = parseUrl(url).query
                 if (q != null) {
@@ -29,7 +29,7 @@ export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOpti
             req.query = query || {}
         }
 
-        return next(ctx as TidyContext<WithQuery<REQ>>)
+        return next(ctx as any as TidyContext<WithQuery<REQ>>)
     }
 }
 

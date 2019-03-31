@@ -57,11 +57,9 @@ export class TidyServerApp implements TidyPluginHub<TidyRequest, HttpReturn<Tidy
     public listen(): void {
         const fn = _compose(this._plugins)
 
-        const server = http.createServer((req: http.IncomingMessage, resp: http.ServerResponse) => {
-            const ctx = new TidyContext(req,
-                { headers: req.headers },
-                defaultErrorHandler,
-                this._logger
+        const server = http.createServer((_originReq: http.IncomingMessage, resp: http.ServerResponse) => {
+            const req: TidyRequest = { headers: _originReq.headers }
+            const ctx = new TidyContext(_originReq, req, defaultErrorHandler, this._logger
             )
             this._process(ctx, resp, fn)
         })

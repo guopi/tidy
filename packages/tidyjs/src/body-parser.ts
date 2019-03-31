@@ -1,7 +1,7 @@
 import { TidyNext, TidyPlugin } from './app'
 import { TidyContext } from './context'
 import CoBody from 'co-body'
-import { TidySimpleData } from './types'
+import { TidySimpleData, WithProperty } from './types'
 
 interface CatOpts {
     extendTypes?: string[]
@@ -88,7 +88,7 @@ class CatEnvs {
     }
 }
 
-export type WithBody<T> = T extends { body: any } ? T : (T & { body?: TidySimpleData })
+export type WithBody<T> = WithProperty<T, 'body', TidySimpleData>
 
 export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlugin<REQ, RESP, WithBody<REQ>> {
     const env = new CatEnvs(options)
@@ -99,7 +99,7 @@ export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlug
             req.body = await env.parse(ctx)
         }
 
-        return Promise.resolve(next(ctx as TidyContext<WithBody<REQ>>))
+        return Promise.resolve(next(ctx as any as TidyContext<WithBody<REQ>>))
     }
 }
 
