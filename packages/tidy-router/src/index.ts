@@ -46,7 +46,11 @@ type SchemaHandler<S extends ApiSchema> = (
 
 export type WithPathParams<T> = WithProperties<T, { params?: PathParams }>
 
-export class TidyRouter<Req, Resp = WebReturn> implements TidyPluginLike<Req, Resp, WithPathParams<Req>, Resp> {
+export function tidyRouter<Req, Resp = WebReturn>(opts?: TidyRouterOptions) {
+    return new Router<Req, Resp>(opts)
+}
+
+class Router<Req, Resp> implements TidyPluginLike<Req, Resp, WithPathParams<Req>> {
     private readonly _treeOpts: PathTreeOptions
     private _onValidateError: ValidateErrorResultCreator
 

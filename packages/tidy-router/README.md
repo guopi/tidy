@@ -13,10 +13,10 @@ $ npm install tidy-router --save
 // for typescript
 
 import { tidyBodyParser, tidyServerApp } from 'tidyjs'
-import { TidyRouter } from 'tidy-router'
+import { tidyRouter } from 'tidy-router'
 import { tjs } from 'tidy-json-schema'
 
-const router = new TidyRouter<any>()
+const router = tidyRouter<any>()
     .on('GET', '/test/:name/:value', ctx => {
         return {
             req: ctx.req
