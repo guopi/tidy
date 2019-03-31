@@ -31,8 +31,8 @@ new TidyServerApp()
 
 ## Docs
 - [Tidy Family](https://github.com/guopi/tidy/wiki)
-- [Overview](https://github.com/guopi/tidy/tidyjs)
-- [Plugins](https://github.com/guopi/tidy/tidy-plugins)
+- [Overview](https://github.com/guopi/tidy/wiki/tidyjs)
+- [Plugins](https://github.com/guopi/tidy/wiki/tidy-plugins)
 - [Router](https://github.com/guopi/tidy/wiki/tidy-router)
 - [Logging](https://github.com/guopi/tidy/wiki/tidyjs-Logging)
     

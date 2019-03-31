@@ -116,7 +116,7 @@ abstract class BaseSchema<T extends JsonData> extends AbstractSchema<T> {
         const typeResult = this._checkType(value)
         let newValue: T
         if (typeResult === undefined) {
-            newValue = value as any
+            newValue = value
         } else if (typeResult === false) {
             return this._typeErrors(value, parentPath)
         } else if (isNewValue(typeResult)) {

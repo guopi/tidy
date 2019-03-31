@@ -13,23 +13,24 @@ const _defaultOpts = {
 
 export type WithQuery<T> = WithProperty<T, { query?: NamedDict }>
 
-export function tidyQueryStringParser<REQ, RESP>(options?: QueryStringParserOptions): TidyPlugin<REQ, RESP, WithQuery<REQ>> {
+export function tidyQueryStringParser<REQ extends {}, RESP>(options?: QueryStringParserOptions): TidyPlugin<REQ, RESP, WithQuery<REQ>> {
+    type NextReq = WithQuery<REQ>
     const opts = options ? { ..._defaultOpts, ...options } : _defaultOpts
-    return function queryStringParser(ctx: TidyContext<REQ>, next: TidyNext<WithQuery<REQ>, RESP>): OrPromise<RESP> {
-        const req = ctx.req as WithQuery<REQ>
+    return function queryStringParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): OrPromise<RESP> {
+        const req = ctx.req as NextReq
         if (req.query === undefined && !ctx.disabled(tidyQueryStringParser.DISABLE_KEY)) {
             const url = ctx.url
-            let query: WithQuery<REQ>['query'] | undefined
+            let query: NextReq | undefined
             if (url !== undefined) {
                 const q = parseUrl(url).query
                 if (q != null) {
                     query = qs.parse(q, opts)
                 }
             }
-            req.query = query
+            req.query = query as NextReq['query']
         }
 
-        return next(ctx as any as TidyContext<WithQuery<REQ>>)
+        return next(ctx as any as TidyContext<NextReq>)
     }
 }
 

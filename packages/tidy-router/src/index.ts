@@ -69,6 +69,7 @@ export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPlu
     }
 
     asTidyPlugin(): TidyPlugin<REQ, RESP, WithPathParams<REQ>> {
+        type NextReq = WithPathParams<REQ>
         this.compact()
         return (ctx, next) => {
             const method = ctx.method.toUpperCase()
@@ -78,11 +79,11 @@ export class TidyRouter<REQ, RESP = HttpReturn<TidyResponse>> implements TidyPlu
                 const path = parse(ctx.url).pathname || ''
                 const found = tree.find(path)
                 if (found) {
-                    (ctx.req as WithPathParams<REQ>).params = found.params
+                    (ctx.req as any as NextReq).params = found.params as NextReq['params']
                     return found.data(ctx, next)
                 }
             }
-            return next(ctx as any as TidyContext<WithPathParams<REQ>>)
+            return next(ctx as any as TidyContext<NextReq>)
         }
     }
 

@@ -26,21 +26,23 @@ export interface UploadOptions {
 }
 
 export function tidyUploadPlugin<REQ, RESP>(options?: UploadOptions): TidyPlugin<REQ, RESP, WithFiles<REQ>> {
+    type NextReq = WithFiles<REQ>
     const opts = options || {}
-    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<WithFiles<REQ>, RESP>): Promise<RESP> {
-        const req = (ctx.req as WithFiles<REQ>)
+    return async function cookieParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): Promise<RESP> {
+        const req = (ctx.req as NextReq)
         let files: TidyUploadFiles | undefined
         if (req.files === undefined && !ctx.disabled(tidyUploadPlugin.DISABLE_KEY)) {
             if (ctx.method.toUpperCase() === 'POST' && ctx.is('multipart/*')) {
                 const parsed = await _parseForm(ctx._originReq, opts)
-                req.files = files = parsed.files
-                req.body = parsed.body
+                files = parsed.files
+                req.files = files as NextReq['files']
+                req.body = parsed.body as NextReq['body']
             }
         }
 
         const deletable = _deletableFilePaths(files)
         try {
-            return Promise.resolve(next(ctx as any as TidyContext<WithFiles<REQ>>))
+            return Promise.resolve(next(ctx as any as TidyContext<NextReq>))
         } finally {
             if (deletable) {
                 _deleteFiles(deletable)

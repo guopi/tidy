@@ -76,7 +76,7 @@ class CatEnvs {
         }
     }
 
-    async parse<REQ>(ctx: TidyContext<REQ>): Promise<any> {
+    async parse(ctx: TidyContext<any>): Promise<any> {
         const req = ctx._originReq
 
         for (const cat of _allCats) {
@@ -92,14 +92,15 @@ export type WithBody<T> = WithProperty<T, { body?: TidySimpleData }>
 
 export function tidyBodyParser<REQ, RESP>(options?: BodyParserOptions): TidyPlugin<REQ, RESP, WithBody<REQ>> {
     const env = new CatEnvs(options)
+    type NextReq = WithBody<REQ>
 
-    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<WithBody<REQ>, RESP>): Promise<RESP> {
+    return async function bodyParser(ctx: TidyContext<REQ>, next: TidyNext<NextReq, RESP>): Promise<RESP> {
         const req = ctx.req as WithBody<REQ>
         if (req.body === undefined && !ctx.disabled(tidyBodyParser.DISABLE_KEY)) {
             req.body = await env.parse(ctx)
         }
 
-        return Promise.resolve(next(ctx as any as TidyContext<WithBody<REQ>>))
+        return Promise.resolve(next(ctx as any as TidyContext<NextReq>))
     }
 }
 
