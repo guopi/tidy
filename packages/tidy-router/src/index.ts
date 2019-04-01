@@ -1,12 +1,16 @@
 import {
+    composePlugins,
     ErrorResult,
+    justCallNext,
     NextPlugin,
+    OrArray,
     OrPromise,
+    TidyLogger,
     TidyPlugin,
     TidyPluginLike,
     WebContext,
-    WebReturn,
-    WithProperties,
+    WebRequest,
+    WebReturn
 } from 'tidyjs'
 import { PathParams, PathTree, PathTreeOptions, SimpleCache } from 'tidy-path-tree'
 import { parse } from 'url'
@@ -16,10 +20,11 @@ export type HttpMethod = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'HEAD' | 'OPTIONS'
 export type HttpMethods = HttpMethod | HttpMethod[] | 'ALL'
 const _allHttpMethods: HttpMethod[] = ['GET', 'POST', 'PUT', 'DELETE', 'HEAD', 'OPTIONS']
 
-type ValidateErrorResultCreator = (errors: ValidateError[]) => WebReturn<any>
+type ValidateErrorBuilder = (errors: ValidateError[]) => WebReturn<any>
 
 export interface TidyRouterOptions extends PathTreeOptions {
-    onValidateError?: ValidateErrorResultCreator
+    logger?: TidyLogger
+    validateErrorBuilder?: ValidateErrorBuilder
 }
 
 export interface ApiInterface<Req, Resp = WebReturn> {
@@ -44,40 +49,206 @@ type SchemaHandler<S extends ApiSchema> = (
     next: NextPlugin<TypeOf<S['req']>, SchemaRespTypeOf<S> | TypeOf<S['req']>>
 ) => OrPromise<WebReturn<SchemaRespTypeOf<S>>>
 
-export type WithPathParams<T> = WithProperties<T, { params?: PathParams }>
+export type WithPathParams<T> = T & { params?: PathParams }
 
-export function tidyRouter<Req, Resp = WebReturn>(opts?: TidyRouterOptions) {
-    return new Router<Req, Resp>(opts)
+export function tidyRouter<Req = WebRequest, Resp = WebReturn>(opts?: TidyRouterOptions) {
+    return new TidyRouter<Req, Resp>(opts)
 }
 
-class Router<Req, Resp> implements TidyPluginLike<Req, Resp, WithPathParams<Req>> {
-    private readonly _treeOpts: PathTreeOptions
-    private _onValidateError: ValidateErrorResultCreator
+interface ApiRule<API extends ApiInterface<any, any>> {
+    method: HttpMethods,
+    path: string | string[],
+    handler: ApiHandler<API>
+}
 
-    private _trees: {
-        [method: string]: PathTree<TidyPlugin<any, any>>
-    } = {}
+interface SchemaRule<S extends ApiSchema> {
+    schema: S,
+    method: HttpMethods,
+    path: string | string[],
+    handler: SchemaHandler<S>
+}
+
+type TreeMap = {
+    [method in HttpMethod]?: PathTree<TidyPlugin<any, any>>
+}
+
+class DispatchEnv {
+    readonly trees: TreeMap = {}
+    readonly validateErrorBuilder: ValidateErrorBuilder
+
+    constructor(private opts: TidyRouterOptions) {
+        this.validateErrorBuilder = opts.validateErrorBuilder || defaultValidateErrorBuilder
+    }
+
+    _add(method: HttpMethod, path: string | string[], handler: TidyPlugin<any>, addHeadWhenGet: boolean) {
+        if (Array.isArray(path)) {
+            for (const p of path) {
+                this._add(method, p, handler, addHeadWhenGet)
+            }
+        } else {
+            if (this.opts.logger)
+                this.opts.logger.debug({ method, path }, 'add route path')
+            this._tree(method).add(path, handler)
+            if (addHeadWhenGet && method === 'GET')
+                this._tree('HEAD').add(path, handler)
+        }
+    }
+
+    _tree(method: HttpMethod): PathTree<TidyPlugin<any>> {
+        let tree = this.trees[method]
+        if (!tree) {
+            tree = new PathTree(this.opts)
+            this.trees[method] = tree
+        }
+        return tree
+    }
+}
+
+function addPathPrefix(path: string | string[], prefix: string): string | string[] {
+    return Array.isArray(path)
+        ? path.map(it => prefix + it)
+        : prefix + path
+}
+
+class Router<Req, Resp> {
+    protected _rules?: (ApiRule<any> | SchemaRule<any> | Router<any, any>)[]
+
+    constructor(protected readonly prefix: string) {
+    }
+
+    protected buildDispatchEnv(env: DispatchEnv, prefix: string) {
+        if (this._rules) {
+            const newPrefix = prefix + this.prefix
+            for (const rule of this._rules) {
+                if (rule instanceof Router) {
+                    rule.buildDispatchEnv(env, newPrefix)
+                } else {
+                    let handler: TidyPlugin<any>
+
+                    if ((rule as SchemaRule<any>).schema) {
+                        const schemaRule = rule as SchemaRule<ApiSchema>
+                        handler = (ctx, next) => {
+                            const r = schemaRule.schema.req.validate(ctx.req, undefined)
+                            if (isErrors(r)) {
+                                return env.validateErrorBuilder(r)
+                            }
+
+                            if (r !== undefined)
+                                ctx.req = r.newValue
+
+                            return schemaRule.handler(ctx, next)
+                        }
+                    } else {
+                        handler = rule.handler
+                    }
+
+                    const method: HttpMethods = rule.method === 'ALL' ? _allHttpMethods : rule.method
+                    const path = newPrefix ? addPathPrefix(rule.path, newPrefix) : rule.path
+
+                    if (Array.isArray(method)) {
+                        for (const m of method)
+                            env._add(m, path, handler, false)
+                    } else {
+                        env._add(method, path, handler, true)
+                    }
+                }
+            }
+        }
+    }
+
+    on(rule: OrArray<ApiRule<any> | SchemaRule<any>>): Router<Req, Resp>
+
+    on<API extends ApiInterface<any, any> = { req: Req }>(
+        method: HttpMethods,
+        path: string | string[],
+        handler: ApiHandler<API>
+    ): Router<Req, Resp>
+
+    on<S extends ApiSchema>(
+        schema: S,
+        method: HttpMethods,
+        path: string | string[],
+        handler: SchemaHandler<S>
+    ): Router<Req, Resp>
+
+    on(
+        arg0: OrArray<ApiRule<any> | SchemaRule<any>> | HttpMethods | ApiSchema,
+        arg1?: string | string[] | HttpMethods,
+        arg2?: ApiHandler<any> | string | string[],
+        arg3?: SchemaHandler<any>
+    ): Router<Req, Resp> {
+        if (!this._rules) this._rules = []
+        if (arg1 === undefined) {
+            const rules = arg0 as OrArray<ApiRule<any> | SchemaRule<any>>
+            if (Array.isArray(rules)) {
+                this._rules.push(...rules)
+            } else {
+                this._rules.push(rules)
+            }
+        } else if (arg3 === undefined) {
+            this._rules.push({
+                method: arg0 as HttpMethods,
+                path: arg1 as string | string[],
+                handler: arg2 as ApiHandler<any>
+            })
+        } else {
+            this._rules.push({
+                schema: arg0 as ApiSchema,
+                method: arg1 as HttpMethods,
+                path: arg2 as string | string[],
+                handler: arg3 as SchemaHandler<any>
+            })
+        }
+        return this
+    }
+
+    subRouter(prefix: string, builder: (sub: Router<Req, Resp>) => void): Router<Req, Resp> {
+        const sub = new Router<Req, Resp>(prefix)
+        builder(sub)
+        if (!this._rules) this._rules = []
+        this._rules.push(sub)
+        return this
+    }
+
+    asTidyPlugin(): TidyPlugin<Req, Resp, WithPathParams<Req>> {
+        throw new Error('asTidyPlugin in subRouter not implemented')
+    }
+}
+
+class TidyRouter<Req, Resp> extends Router<Req, Resp> implements TidyPluginLike<Req, Resp, WithPathParams<Req>> {
+    private readonly opts: TidyRouterOptions
+
+    private _plugins?: TidyPlugin<any, any>[]
 
     constructor(opts?: TidyRouterOptions) {
+        super('')
         if (!opts) opts = {}
         if (!opts.regexCache) opts.regexCache = new SimpleCache()
         if (!opts.parseCache) opts.parseCache = new SimpleCache(128)
-        this._treeOpts = opts
-        this._onValidateError = opts.onValidateError || _defaultOnValidateError
+        this.opts = opts
     }
 
     compact() {
-        this._treeOpts.regexCache!.clear()
-        this._treeOpts.parseCache!.clear()
+        this.opts.regexCache!.clear()
+        this.opts.parseCache!.clear()
     }
 
     asTidyPlugin(): TidyPlugin<Req, Resp, WithPathParams<Req>> {
         type NextReq = WithPathParams<Req>
-        this.compact()
-        return (ctx, next) => {
-            const method = ctx.method.toUpperCase()
 
-            const tree = this._trees[method]
+        if (!this._rules) {
+            return this._plugins ? composePlugins([...this._plugins]) : justCallNext
+        }
+
+        const env = new DispatchEnv(this.opts)
+        this.buildDispatchEnv(env, this.prefix)
+
+        this.compact()
+
+        const dispatch = (ctx: WebContext<Req>, next: NextPlugin<WithPathParams<Req>, Resp>) => {
+            const method = ctx.method.toUpperCase() as HttpMethod
+
+            const tree = env.trees[method]
             if (tree) {
                 const path = parse(ctx.url).pathname || ''
                 const found = tree.find(path)
@@ -88,86 +259,29 @@ class Router<Req, Resp> implements TidyPluginLike<Req, Resp, WithPathParams<Req>
             }
             return next(ctx as any as WebContext<NextReq>)
         }
+        return this._plugins
+            ? composePlugins([...this._plugins, dispatch])
+            : dispatch
     }
 
-    private _tree(method: HttpMethod): PathTree<TidyPlugin<any>> {
-        let tree = this._trees[method]
-        if (!tree) {
-            tree = new PathTree(this._treeOpts)
-            this._trees[method] = tree
-        }
-        return tree
-    }
+    public use<NextReq, NextResp>(
+        plugin:
+            TidyPlugin<Req, Resp, NextReq, NextResp>
+            | TidyPluginLike<Req, Resp, NextReq, NextResp>
+    ): Router<NextReq, NextResp> {
+        if (!this._plugins)
+            this._plugins = []
 
-    on<API extends ApiInterface<any, any> = { req: Req }>(
-        method: HttpMethods,
-        path: string | string[],
-        handler: ApiHandler<API>
-    ): this
+        if ((plugin as TidyPluginLike<any, any>).asTidyPlugin)
+            this._plugins.push((plugin as TidyPluginLike<any, any>).asTidyPlugin())
+        else
+            this._plugins.push(plugin as TidyPlugin<any, any>)
 
-    on<S extends ApiSchema>(
-        schema: S,
-        method: HttpMethods,
-        path: string | string[],
-        handler: SchemaHandler<S>
-    ): this
-
-    on(..._args: [ApiSchema, HttpMethods, string | string[], SchemaHandler<any>] | [HttpMethods, string | string[], ApiHandler<any>]): this {
-        let method: HttpMethods
-        let path: string | string[]
-        let handler: TidyPlugin<any>
-
-        if (_args[3] !== undefined) {
-            const args = _args as [ApiSchema, HttpMethods, string | string[], SchemaHandler<any>]
-
-            method = args[1]
-            path = args[2]
-            const schema = args[0]
-            const orgHandler = args[3]
-
-            handler = (ctx, next) => {
-                const r = schema.req.validate(ctx.req, undefined)
-                if (isErrors(r)) {
-                    return this._onValidateError(r)
-                }
-
-                if (r !== undefined)
-                    ctx.req = r.newValue
-
-                return orgHandler(ctx, next)
-            }
-        } else {
-            const args = _args as [HttpMethods, string | string[], ApiHandler<any>]
-            method = args[0]
-            path = args[1]
-            handler = args[2]
-        }
-
-        if (method === 'ALL') method = _allHttpMethods
-        if (Array.isArray(method)) {
-            for (const m of method)
-                this._add(m, path, handler)
-        } else {
-            this._add(method, path, handler)
-        }
-
-        return this
-    }
-
-    private _add(method: HttpMethod, path: string | string[], handler: TidyPlugin<any>) {
-        if (Array.isArray(path)) {
-            for (const p of path) {
-                this._add(method, p, handler)
-            }
-        } else {
-            this._tree(method).add(path, handler)
-            if (method === 'GET')
-                this._tree('HEAD').add(path, handler)
-        }
+        return this as any as Router<NextReq, NextResp>
     }
 }
 
-function _defaultOnValidateError(errors: ValidateError[]) {
+function defaultValidateErrorBuilder(errors: ValidateError[]) {
     return new ErrorResult({
         validate: errors
     })
