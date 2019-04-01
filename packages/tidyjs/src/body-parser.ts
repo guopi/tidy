@@ -1,6 +1,6 @@
 import { WebContext } from './context'
 import CoBody from 'co-body'
-import { TidySimpleData, WithProperties } from './types'
+import { TidySimpleData } from './types'
 import { NextPlugin, TidyPlugin } from './plugin'
 
 interface CatOpts {
@@ -88,7 +88,7 @@ class CatEnvs {
     }
 }
 
-export type WithBody<T> = WithProperties<T, { body?: TidySimpleData }>
+export type WithBody<T> = T & { body?: TidySimpleData }
 
 export function tidyBodyParser<Req, Resp>(options?: BodyParserOptions): TidyPlugin<Req, Resp, WithBody<Req>> {
     const env = new CatEnvs(options)

@@ -1,5 +1,5 @@
 import * as qs from 'qs'
-import { NamedDict, OrPromise, WithProperties } from './types'
+import { NamedDict, OrPromise } from './types'
 import { WebContext } from './context'
 import { parse as parseUrl } from 'url'
 import { NextPlugin, TidyPlugin } from './plugin'
@@ -10,7 +10,7 @@ const _defaultOpts = {
     allowDots: true
 }
 
-export type WithQuery<T> = WithProperties<T, { query?: NamedDict }>
+export type WithQuery<T> = T & { query?: NamedDict }
 
 export function tidyQueryStringParser<Req extends {}, Resp>(options?: QueryStringParserOptions): TidyPlugin<Req, Resp, WithQuery<Req>> {
     type NextReq = WithQuery<Req>

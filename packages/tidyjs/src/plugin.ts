@@ -13,13 +13,14 @@ export interface TidyPluginLike<Req, Resp, NextReq = Req, NextResp = Resp> {
     asTidyPlugin(): TidyPlugin<Req, Resp, NextReq, NextResp>
 }
 
-export interface TidyPluginHub<Req, Resp, Hub> {
-    use<NextReq = Req, NextResp = Resp>(
-        plugin: TidyPlugin<Req, Resp, NextReq, NextResp> | TidyPluginLike<Req, Resp, NextReq, NextResp>
-    ): TidyPluginHub<NextReq, NextResp, Hub> & Hub
-}
-
 export function composePlugins(array: TidyPlugin<any, any>[]): TidyPlugin<any, any> {
+    switch (array.length) {
+        case 0:
+            return justCallNext
+        case 1:
+            return array[1]
+    }
+
     return function (context: WebContext<any>, next: NextPlugin<any, any>): any {
         // last called #
         let lastIndex = -1
@@ -41,4 +42,8 @@ export function composePlugins(array: TidyPlugin<any, any>[]): TidyPlugin<any, a
             }
         }
     }
+}
+
+export function justCallNext<Req, Resp>(ctx: WebContext<Req>, next: NextPlugin<Req, Resp>): OrPromise<Resp> {
+    return next(ctx)
 }

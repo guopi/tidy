@@ -1,4 +1,4 @@
-import { NamedDict, NextPlugin, TidyPlugin, WebContext, WithProperties } from 'tidyjs'
+import { NamedDict, NextPlugin, TidyPlugin, WebContext } from 'tidyjs'
 import http from 'http'
 import * as formidable from 'formidable'
 import fs from 'fs'
@@ -16,10 +16,10 @@ interface TidyUploadFiles {
     [name: string]: TidyUploadFile | TidyUploadFile[] | undefined
 }
 
-export type WithFiles<T> = WithProperties<T, {
+export type WithFiles<T> = T & {
     files?: TidyUploadFiles
     body?: NamedDict
-}>
+}
 
 export interface UploadOptions {
     onFileBegin?: (name: string, file: formidable.File) => void

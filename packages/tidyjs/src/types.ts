@@ -15,10 +15,5 @@ export interface NamedDict {
 
 export type PropertyOf<T, K> = K extends keyof T ? T[K] : undefined
 
-export type WithProperties<T extends {}, Props extends {}> = {
-    [P in (keyof T | keyof Props)]: P extends keyof T
-        ? (P extends keyof Props ? T[P] | Props[P] : T[P])
-        : (P extends keyof Props ? Props[P] : undefined)
-}
-
 export type OrPromise<T> = T | Promise<T>
+export type OrArray<T> = T | T[]

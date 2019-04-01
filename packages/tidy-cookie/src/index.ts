@@ -1,7 +1,7 @@
 import * as cookie from 'cookie'
-import { NamedStringDict, NextPlugin, OrPromise, TidyPlugin, WebContext, WithProperties } from 'tidyjs'
+import { NamedStringDict, NextPlugin, OrPromise, TidyPlugin, WebContext } from 'tidyjs'
 
-export type WithCookies<T> = WithProperties<T, { cookies?: NamedStringDict }>
+export type WithCookies<T> = T & { cookies?: NamedStringDict }
 
 interface WithCookieHeader {
     headers?: {

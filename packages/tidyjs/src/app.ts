@@ -6,37 +6,17 @@ import { AbstractResult, ErrorBuilder, HeadResult, JsonResult, WebReturn } from 
 import { ListenOptions } from 'net'
 import { defaultErrorBuilder } from './error'
 import { WebContext } from './context'
-import { composePlugins, TidyPlugin, TidyPluginHub, TidyPluginLike } from './plugin'
+import { composePlugins, TidyPlugin, TidyPluginLike } from './plugin'
 
 export interface TidyServerAppOptions {
     logger?: TidyLogger
 }
 
-interface Listenable {
-    listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function): void;
-
-    listen(port?: number, hostname?: string, listeningListener?: Function): void;
-
-    listen(port?: number, backlog?: number, listeningListener?: Function): void;
-
-    listen(port?: number, listeningListener?: Function): void;
-
-    listen(path: string, backlog?: number, listeningListener?: Function): void;
-
-    listen(path: string, listeningListener?: Function): void;
-
-    listen(options: ListenOptions, listeningListener?: Function): void;
-
-    listen(handle: any, backlog?: number, listeningListener?: Function): void;
-
-    listen(handle: any, listeningListener?: Function): void
-}
-
-export function tidyServerApp(opts?: TidyServerAppOptions) {
+export function tidyServerApp(opts?: TidyServerAppOptions): ServerApp<WebRequest, WebReturn> {
     return new ServerApp(opts)
 }
 
-class ServerApp implements TidyPluginHub<WebRequest, WebReturn, Listenable>, Listenable {
+class ServerApp<Req = WebRequest, Resp = WebReturn> {
     private _plugins: TidyPlugin<any, any>[] = []
     private readonly _logger: TidyLogger
 
@@ -51,16 +31,16 @@ class ServerApp implements TidyPluginHub<WebRequest, WebReturn, Listenable>, Lis
      */
     public use<NextReq, NextResp>(
         plugin:
-            TidyPlugin<WebRequest, WebReturn, NextReq, NextResp>
-            | TidyPluginLike<WebRequest, WebReturn, NextReq, NextResp>
-    ): TidyPluginHub<NextReq, NextResp, Listenable> & Listenable {
+            TidyPlugin<Req, Resp, NextReq, NextResp>
+            | TidyPluginLike<Req, Resp, NextReq, NextResp>
+    ): ServerApp<NextReq, NextResp> {
 
         if ((plugin as TidyPluginLike<any, any>).asTidyPlugin)
             this._plugins.push((plugin as TidyPluginLike<any, any>).asTidyPlugin())
         else
             this._plugins.push(plugin as TidyPlugin<any, any>)
 
-        return this as any as TidyPluginHub<NextReq, NextResp, Listenable> & Listenable
+        return this as any as ServerApp<NextReq, NextResp>
     }
 
     listen(port?: number, hostname?: string, backlog?: number, listeningListener?: Function): void;

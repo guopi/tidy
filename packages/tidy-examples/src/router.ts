@@ -1,13 +1,18 @@
 import { tidyBodyParser, tidyServerApp } from 'tidyjs'
 import { tidyRouter } from 'tidy-router'
 import { tjs } from 'tidy-json-schema'
+import * as pino from 'pino'
 
-const router = tidyRouter<any>()
+const router = tidyRouter({ logger: pino({ level: 'debug' }) })
     .on('GET', '/test/:name/:value', ctx => {
         return {
             req: ctx.req
         }
     })
+    .subRouter('/testSub', sub => sub
+        .on('ALL', '/sub1/:name', ctx => ({ sub1Req: ctx.req }))
+        .on('ALL', '/sub2/:name', ctx => ({ sub2Req: ctx.req }))
+    )
     .on({
             req: tjs.obj({
                 params: tjs.obj({
@@ -48,4 +53,6 @@ console.log(`router example started. test command:
 \thttp get :3000/test/tidy/value1
 \thttp get :3000/test2/tidy/99
 \thttp -v post :3000/test3 a=string_a b=123
+\thttp get :3000/testSub/sub1/value1
+\thttp get :3000/testSub/sub2/value1
 `)
