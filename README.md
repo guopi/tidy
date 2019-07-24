@@ -21,7 +21,7 @@ All modules are built with Typescript, and preserves compatibility with JavaScri
 ## Tidy library module
 | Module | Npm | Description |
 |---------|--------|-------------|
-| [tidy-json-schema] | [![tidy-json-schema-version]][tidy-json-schema-npm] | tidy json schema validate library|
+| [tidy-json-schema] | [![tidy-json-schema-version]][tidy-json-schema-npm] | tidy json schema definition and validation library|
 | [tidy-path-tree] | [![tidy-path-tree-version]][tidy-path-tree-npm] | tidy path tree (used Prefix Tree/Trie Tree) library|
 | [tidy-util] | [![tidy-util-version]][tidy-util-npm] | tidy util library|
 

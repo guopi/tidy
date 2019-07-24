@@ -21,13 +21,13 @@ tidyServerApp()
 ```
 
 ## Features
-- **Extensible** : powerful and simple plugin system
+- **Extensible** : powerful and natural plugin system.
 - **Developer friendly** : full Typescript support, and built to be very expressive.
-- **Clean business logic** : use pure function, separated from web protocol
-- **Full async support** : take advantage of the new async/await syntax
+- **Clean business logic** : use pure function, separated from web protocol.
+- **Full async support** : take advantage of power of async/await. 
 - **Routing support type and schema** : we can easily build strongly typed interfaces.
 - **High performance routing** : use used Prefix Tree, when there are a lot of routes, lookup performance can be greatly improved
-- **Clean and solid code** : with type Typescript strict mode, and async/await catch all errors and exceptions
+- **Clean and solid code** : the whole project is written in the Typescript strict mode and captures all errors and exceptions using async/await To build a clean and solid system.
 
 ## Docs
 - [Tidy Family](https://github.com/guopi/tidy/wiki)
