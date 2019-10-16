@@ -42,16 +42,13 @@ export type SchemaArrayOf<T extends any[]> = {
     [K in keyof T]: TidySchema<T[K]>
 }
 
-export type NonUndefinedOf<T> = T extends undefined ? never : T
-export type NonNullOf<T> = T extends null ? never : T
+export type NonOptKeys<T> = {
+    [K in keyof T]-?: undefined extends T[K] ? never : K
+}[keyof T]
 
-export type NonOptKeys<T> = NonUndefinedOf<{
-    [K in keyof T]: undefined extends T[K] ? undefined : K
-}[keyof T]>
-
-export type OptKeys<T> = NonUndefinedOf<{
-    [K in keyof T]: undefined extends T[K] ? K : undefined
-}[keyof T]>
+export type OptKeys<T> = {
+    [K in keyof T]-?: undefined extends T[K] ? K : never
+}[keyof T]
 
 type MakeOpt<T> = {
     [K in OptKeys<T>]?: UndefAsOpt<T[K]>
