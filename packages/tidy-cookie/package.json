@@ -1,5 +1,5 @@
 {
-    "version": "1.0.19",
+    "version": "1.0.20",
     "name": "tidy-cookie",
     "author": "guopi <guopi.pro@gmail.com>",
     "license": "MIT",
@@ -24,7 +24,7 @@
     },
     "dependencies": {
         "cookie": "^0.3.1",
-        "tidyjs": "^1.0.21"
+        "tidyjs": "^1.0.22"
     },
     "devDependencies": {
         "@types/cookie": "^0.3.2",

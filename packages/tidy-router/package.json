@@ -1,6 +1,6 @@
 {
     "name": "tidy-router",
-    "version": "1.0.17",
+    "version": "1.0.18",
     "main": "./lib/index.cjs.js",
     "license": "MIT",
     "author": "guopi <guopi.pro@gmail.com>",
@@ -23,8 +23,8 @@
         "tidy-dev-tools": "^1.0.5"
     },
     "dependencies": {
-        "tidy-json-schema": "^1.0.4",
+        "tidy-json-schema": "^1.0.5",
         "tidy-path-tree": "^1.0.19",
-        "tidyjs": "^1.0.21"
+        "tidyjs": "^1.0.22"
     }
 }
